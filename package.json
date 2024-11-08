@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "serverless": "^3.39.0",
+    "serverless-better-credentials": "^2.0.0",
+    "serverless-python-requirements": "^6.1.1"
+  }
+}
