@@ -1,10 +1,12 @@
-from pydantic import BaseModel
-from typing import Tuple
+from sqlalchemy import String
+from sqlalchemy.orm import Mapped, mapped_column
 
-class Exercise(BaseModel):
-    exercise_id: int
-    name: str
-    body_part: str
-    unit: list[Tuple[int, int]] # [(weight, rep), (weight, rep), ...]
+class Exercise():
+    __tablename__ = 'exercises'
 
-print("exercise.py ran successfully")
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(64), index=True, unique=True)
+    body_parts: Mapped[str] = mapped_column(String(64), unique=True)
+
+    def __repr__(self):
+        return f'Exercise({self.id}, "{self.name}")'

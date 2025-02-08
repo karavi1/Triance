@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine, text, insert
 
-engine = create_engine('postgresql://localhost/fisitrackdb')
+engine = create_engine('postgresql://localhost/cft')
 
 with engine.connect() as connection:
     connection.execute(text("CREATE TABLE user ( int, y int)"))
