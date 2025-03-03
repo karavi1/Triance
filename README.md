@@ -1,2 +1,3 @@
 # CustomFitTracker (CFT)
-A simple application to help track your physical exercise
+
+An application to help track your exercise!

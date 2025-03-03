@@ -1,39 +1,54 @@
-from typing import Union
-from fastapi import FastAPI
-from pydantic import BaseModel
+from fastapi import FastAPI, Depends, HTTPException
+from sqlalchemy.orm import Session
+from typing import List
+from src.database.configure import SessionLocal
+from src.models.user import User
+from src.crud.user import get_all_users, get_user_by_id, create_user, update_user, delete_user
+from src.schemas.user import UserResponse, UserCreate
 
 app = FastAPI()
 
-# class Item(BaseModel):
-#     name: str
-#     price: float
-#     is_offer: Union[bool, None] = None
+# Dependency to get a database session
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
-# @app.put("/items/{item_id}")
-# def update_item(item_id: int, item: Item):
-#     return {"item_name": item.name, "item_id": item_id}
+# GET all users
+@app.get("/users/", response_model=List[UserResponse])
+def get_users(db: Session = Depends(get_db)):
+    users = get_all_users(db)
+    if not users:
+        raise HTTPException(status_code=404, detail="No users found")
+    return users
 
-@app.get("/cft/latest_workout/{user_id}")
-def get_latest_workout(user_id: int):
-    return {"workout": "sample workout" }
+# GET user by ID
+@app.get("/users/{user_id}", response_model=UserResponse)
+def get_user(user_id: int, db: Session = Depends(get_db)):
+    user = get_user_by_id(db, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
 
-@app.get("/cft/all_workouts/{user_id}")
-def get_all_workouts(user_id: int):
-    return {"workout": "sample workout" }
+# POST create a new user
+@app.post("/users/", response_model=UserResponse)
+def create_new_user(user: UserCreate, db: Session = Depends(get_db)):
+    return create_user(db, user.name, user.email)
 
-@app.get("/cft/workout/{user_id})")
-def get_specific_workout(user_id: int, workout_id: int):
-    return {"workout": "sample workout" }
+# PUT update user details
+@app.put("/users/{user_id}", response_model=UserResponse)
+def update_existing_user(user_id: int, user: UserCreate, db: Session = Depends(get_db)):
+    updated_user = update_user(db, user_id, name=user.name, email=user.email)
+    if not updated_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return updated_user
 
-@app.put("/cft/{user_id}")
-def create_user():
-    print("something happens")
-
-@app.put("/cft/{exercise_id}")
-def create_exercise():
-    return 2
-
-@app.put("/cft/{workout_id}")
-def create_workout():
-    return 3
-
+# DELETE user
+@app.delete("/users/{user_id}", response_model=UserResponse)
+def delete_existing_user(user_id: int, db: Session = Depends(get_db)):
+    deleted_user = delete_user(db, user_id)
+    if not deleted_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return deleted_user
