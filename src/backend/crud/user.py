@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from src.models.user import User
+from src.backend.models.user import User
 
 def create_user(db: Session, name: str, email: str):
     user = User(name=name, email=email)
@@ -32,4 +32,4 @@ def delete_user(db: Session, user_id: int):
         return None
     db.delete(user)
     db.commit()
-    return user
+    return True

@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Mapped, mapped_column
-from src.models.user import User
-from src.models.exercise import Exercise
+from src.backend.models.user import User
+from src.backend.models.exercise import Exercise
 
 class Workout():
     __tablename__ = 'workouts'

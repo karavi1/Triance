@@ -1,0 +1,1 @@
+from src.backend.database.configure import Base

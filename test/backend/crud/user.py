@@ -1,15 +1,15 @@
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from src.database.configure import Base
-from src.crud.user import (
+from src.backend.database.configure import Base
+from src.backend.crud.user import (
     create_user,
     get_user_by_id,
     get_all_users,
-    update_user_name,
+    update_user,
     delete_user,
 )
-from src.models.user import User
+from src.backend.models.user import User
 
 # Create a test database (in-memory for speed)
 TEST_DATABASE_URL = "sqlite:///:memory:"
@@ -51,9 +51,9 @@ def test_get_all_users(db_session):
     assert len(users) == 2
 
 # Test: Update User Name
-def test_update_user_name(db_session):
+def test_update_user(db_session):
     user = create_user(db_session, "Charlie", "charlie@example.com")
-    updated_user = update_user_name(db_session, user.user_id, "Charlie Updated")
+    updated_user = update_user(db_session, user.user_id, "Charlie Updated")
     assert updated_user.name == "Charlie Updated"
 
 # Test: Delete User
