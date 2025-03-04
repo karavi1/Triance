@@ -16,16 +16,12 @@ TEST_DATABASE_URL = "sqlite:///:memory:"
 engine = create_engine(TEST_DATABASE_URL, echo=False)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Fixture to set up and tear down the database
 @pytest.fixture(scope="function")
 def db_session():
-    # Create tables in test DB
+    """Set up a new database session for each test."""
     Base.metadata.create_all(bind=engine)
     session = TestingSessionLocal()
-
-    yield session  # Provide the session to tests
-
-    # Cleanup: Drop all tables after test
+    yield session
     session.close()
     Base.metadata.drop_all(bind=engine)
 
@@ -50,10 +46,10 @@ def test_get_all_users(db_session):
     users = get_all_users(db_session)
     assert len(users) == 2
 
-# Test: Update User Name
+# Test: Update User
 def test_update_user(db_session):
     user = create_user(db_session, "Charlie", "charlie@example.com")
-    updated_user = update_user(db_session, user.user_id, "Charlie Updated")
+    updated_user = update_user(db_session, user.user_id, name="Charlie Updated")
     assert updated_user.name == "Charlie Updated"
 
 # Test: Delete User

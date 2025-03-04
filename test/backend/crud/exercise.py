@@ -16,49 +16,44 @@ TEST_DATABASE_URL = "sqlite:///:memory:"
 engine = create_engine(TEST_DATABASE_URL, echo=False)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Fixture to set up and tear down the database
 @pytest.fixture(scope="function")
 def db_session():
-    # Create tables in test DB
+    """Set up a new database session for each test."""
     Base.metadata.create_all(bind=engine)
     session = TestingSessionLocal()
-
-    yield session  # Provide the session to tests
-
-    # Cleanup: Drop all tables after test
+    yield session
     session.close()
     Base.metadata.drop_all(bind=engine)
 
 # Test: Create an Exercise
 def test_create_exercise(db_session):
-    exercise = create_exercise(db_session, "Squat", ["Legs", "Glutes"])
+    exercise = create_exercise(db_session, "Push-up", ["chest", "triceps"])
     assert exercise.id is not None
-    assert exercise.name == "Squat"
-    assert exercise.body_parts == "Legs,Glutes"
+    assert exercise.name == "Push-up"
+    assert exercise.body_parts == ["chest", "triceps"]
 
 # Test: Get Exercise by ID
 def test_get_exercise_by_id(db_session):
-    exercise = create_exercise(db_session, "Bench Press", ["Chest", "Triceps"])
+    exercise = create_exercise(db_session, "Squat", ["legs", "glutes"])
     fetched_exercise = get_exercise_by_id(db_session, exercise.id)
     assert fetched_exercise is not None
-    assert fetched_exercise.name == "Bench Press"
+    assert fetched_exercise.name == "Squat"
 
 # Test: Get All Exercises
 def test_get_all_exercises(db_session):
-    create_exercise(db_session, "Deadlift", ["Back", "Legs"])
-    create_exercise(db_session, "Pull-up", ["Back", "Biceps"])
+    create_exercise(db_session, "Bench Press", ["chest", "triceps"])
+    create_exercise(db_session, "Deadlift", ["back", "legs"])
     exercises = get_all_exercises(db_session)
     assert len(exercises) == 2
 
 # Test: Update Exercise
 def test_update_exercise(db_session):
-    exercise = create_exercise(db_session, "Push-up", ["Chest", "Triceps"])
-    updated_exercise = update_exercise(db_session, exercise.id, "Diamond Push-up", ["Chest", "Triceps", "Shoulders"])
-    assert updated_exercise.name == "Diamond Push-up"
-    assert updated_exercise.body_parts == "Chest,Triceps,Shoulders"
+    exercise = create_exercise(db_session, "Plank", ["core"])
+    updated_exercise = update_exercise(db_session, exercise.id, body_parts=["core", "shoulders"])
+    assert updated_exercise.body_parts == ["core", "shoulders"]
 
 # Test: Delete Exercise
 def test_delete_exercise(db_session):
-    exercise = create_exercise(db_session, "Lunges", ["Legs", "Glutes"])
+    exercise = create_exercise(db_session, "Lunges", ["legs", "glutes"])
     assert delete_exercise(db_session, exercise.id) is not None
     assert get_exercise_by_id(db_session, exercise.id) is None

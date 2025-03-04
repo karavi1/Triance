@@ -1,7 +1,9 @@
 import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from src.backend.database.configure import Base
+from src.backend.models.user import User
+from src.backend.models.exercise import Exercise
 
 # Load environment variables from .env file
 load_dotenv()
@@ -16,14 +18,8 @@ DB_NAME = os.getenv("DB_NAME")
 # Construct Database URL
 DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
+# ✅ Create an engine without 'check_same_thread' (only needed for SQLite)
+engine = create_engine(DATABASE_URL)
 
-# Dependency for database session
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+Base.metadata.create_all(bind=engine)
+print("✅ Tables synced successfully!")
