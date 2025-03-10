@@ -1,9 +1,12 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+from typing import List
 
 from src.backend.database.configure import SessionLocal
 from src.backend.api import user, exercise
+from src.backend.crud.user import get_all_users  # Import the function to get all users
+from src.backend.schemas.user import UserResponse  # Import the response model for users
 
 app = FastAPI(
     title="Fitness Tracker API",
@@ -32,6 +35,24 @@ def get_db():
 app.include_router(user.router, prefix="/users", tags=["Users"])
 app.include_router(exercise.router, prefix="/exercises", tags=["Exercises"])
 
+# Root endpoint
 @app.get("/", tags=["Root"])
 def read_root():
     return {"message": "Welcome to the Fitness Tracker API!"}
+
+# /docs endpoint that React is expecting
+@app.get("/docs", tags=["Docs"])
+def get_docs():
+    return {"message": "Hello from the backend!"}
+
+# GET /users endpoint that returns a list of users
+@app.get("/users", response_model=List[UserResponse], tags=["Users"])
+def get_users(db: Session = Depends(get_db)):
+    # Get the list of all users from the database
+    users = get_all_users(db)
+    
+    # If no users are found, raise a 404 error
+    if not users:
+        raise HTTPException(status_code=404, detail="No users found")
+    
+    return users
