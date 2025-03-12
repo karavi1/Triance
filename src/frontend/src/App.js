@@ -10,7 +10,7 @@ function App() {
   useState(() => {
     setError(""); // Clear previous errors
     axios
-      .get("http://18.119.104.96:8000/")
+      .get("http://18.191.202.36:8000/")
       .then((response) => {
         if (response && response.data && response.data.message) {
           setMessage(response.data.message);
@@ -35,7 +35,7 @@ function App() {
   const fetchUsers = () => {
     setError(""); // Clear previous errors
     axios
-      .get("http://18.119.104.96:8000/users")
+      .get("http://18.191.202.36:8000/users")
       .then((response) => {
         if (response && response.data) {
           setUsers(response.data); // Assuming the response data is a list of users
