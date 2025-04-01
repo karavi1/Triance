@@ -1,13 +1,16 @@
-from sqlalchemy import Column, Integer, String
-from src.backend.models.base import Base
+from sqlalchemy import String
+from sqlalchemy.orm import Mapped, mapped_column
+from uuid import UUID, uuid4
+from datetime import datetime
+from src.backend.database.configure import Base
 
-# User Model
 class User(Base):
     __tablename__ = "users"
 
-    user_id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String(64), index=True, nullable=False)
-    email = Column(String(128), unique=True, nullable=False)
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    email: Mapped[str] = mapped_column(String(255))
+    username: Mapped[str] = mapped_column(String(100))
+    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
 
     def __repr__(self):
-        return f'User({self.user_id}, "{self.name}", "{self.email}")'
+        return f'User({self.id}, "{self.username}", "{self.email}")'

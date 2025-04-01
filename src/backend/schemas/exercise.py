@@ -1,21 +1,22 @@
+# src/backend/schemas/exercise.py
 from pydantic import BaseModel
-from typing import List, Optional
+from uuid import UUID
+from typing import Optional, List
 
 class ExerciseBase(BaseModel):
     name: str
-    body_parts: List[str]  # A list of body parts as strings
-    description: Optional[str] = None  # Optional description field
+    body_parts: List[str]
+    description: Optional[str] = None
 
 class ExerciseCreate(ExerciseBase):
-    pass  # Used for input validation when creating an exercise
+    pass
 
-class ExerciseUpdate(BaseModel):
-    name: Optional[str] = None
-    body_parts: Optional[List[str]] = None  # Optional list for partial updates
-    description: Optional[str] = None  # Optional update for description
+class ExerciseUpdate(ExerciseBase):
+    pass
 
-class ExerciseResponse(ExerciseBase):
-    id: int
+class ExerciseOut(ExerciseBase):
+    id: UUID
 
-    class Config:
-        orm_mode = True  # Allows conversion from SQLAlchemy models
+    model_config = {
+        "from_attributes": True  # replaces orm_mode in Pydantic v2
+    }

@@ -1,15 +1,22 @@
-from pydantic import BaseModel
-from typing import Optional
+# src/backend/schemas/user.py
+from pydantic import BaseModel, EmailStr
+from uuid import UUID
+from datetime import datetime
 
 class UserBase(BaseModel):
-    name: str
-    email: str
+    email: EmailStr
+    username: str
 
 class UserCreate(UserBase):
-    pass  # Used for creating a new user
+    pass
 
-class UserResponse(UserBase):
-    user_id: int  # Ensure this matches your DB model field
+class UserUpdate(UserBase):
+    pass
 
-    class Config:
-        from_attributes = True  # Enables ORM mode
+class UserOut(UserBase):
+    id: UUID
+    created_at: datetime
+
+    model_config = {
+        "from_attributes": True
+    }
