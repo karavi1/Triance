@@ -1,5 +1,5 @@
 from sqlalchemy import ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from uuid import UUID, uuid4
 from src.backend.models.base import Base
 
@@ -12,6 +12,7 @@ class LoggedExercise(Base):
     sets: Mapped[int]
     reps: Mapped[int]
     weight: Mapped[float]
+    exercise = relationship("Exercise", lazy="joined")
 
     def __repr__(self):
         return f'LoggedExercise(workout_id={self.workout_id}, exercise_id={self.exercise_id}, weight={self.weight}, sets={self.sets}, reps={self.reps})'

@@ -6,7 +6,7 @@ from src.backend.api import user, exercise, workout, logged_exercise
 
 app = FastAPI(
     title="Fitness Tracker API",
-    description="An open-source API for tracking workouts and recommending fitness plans",
+    description="An open-source API for tracking workouts and visualization",
     version="1.0.0"
 )
 
