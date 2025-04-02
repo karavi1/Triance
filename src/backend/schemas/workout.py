@@ -1,5 +1,4 @@
-# src/backend/schemas/workout.py
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from uuid import UUID
 from datetime import date
 from typing import Optional, List
@@ -11,12 +10,12 @@ class WorkoutBase(BaseModel):
 
 class WorkoutCreate(WorkoutBase):
     user_id: UUID
-    logged_exercises: List[LoggedExerciseOut]
+    logged_exercises: List[LoggedExerciseOut] = Field(..., min_length=1)
 
 class WorkoutCreateSimple(BaseModel):
     username: str
     notes: Optional[str] = None
-    logged_exercises: List[LoggedExerciseCreateByName]
+    logged_exercises: List[LoggedExerciseCreateByName] = Field(..., min_length=1)
 
 class WorkoutUpdate(WorkoutBase):
     notes: Optional[str]

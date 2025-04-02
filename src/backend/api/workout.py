@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from uuid import UUID
 
 from src.backend.database.configure import get_db
-from src.backend.schemas.workout import WorkoutCreateSimple
+from src.backend.schemas.workout import WorkoutCreateSimple, WorkoutOut
 from src.backend.crud.workout import create_workout, get_workout_by_id, get_all_workouts, delete_workout
 
 router = APIRouter()
@@ -19,7 +19,7 @@ def get_workout(workout_id: UUID, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Workout not found")
     return workout
 
-@router.post("/")
+@router.post("/", response_model=WorkoutOut)
 def create_new_workout(workout: WorkoutCreateSimple, db: Session = Depends(get_db)):
     return create_workout(db, workout)
 

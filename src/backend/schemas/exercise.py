@@ -1,4 +1,3 @@
-# src/backend/schemas/exercise.py
 from pydantic import BaseModel
 from uuid import UUID
 from typing import Optional, List
@@ -6,7 +5,7 @@ from typing import Optional, List
 class ExerciseBase(BaseModel):
     name: str
     primary_muscles: List[str]
-    secondary_muscles: Optional[List[str]]
+    secondary_muscles: Optional[List[str]] = None
     description: Optional[str] = None
 
 class ExerciseCreate(ExerciseBase):

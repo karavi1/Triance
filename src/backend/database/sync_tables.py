@@ -25,8 +25,8 @@ engine = create_engine(DATABASE_URL)
 
 # Drop all tables (for dev purposes only)
 Base.metadata.drop_all(bind=engine)
-print("⚠️ Dropped all tables.")
+print("Dropped all tables.")
 
 # Recreate all tables
 Base.metadata.create_all(bind=engine)
-print("✅ Tables synced successfully!")
+print("Tables synced successfully!")

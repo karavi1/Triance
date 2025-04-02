@@ -1,13 +1,12 @@
-# src/backend/schemas/logged_exercise.py
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from src.backend.schemas.exercise import ExerciseSummaryOut
 from uuid import UUID
 
 class LoggedExerciseBase(BaseModel):
     exercise_id: UUID
-    sets: int
-    reps: int
-    weight: float
+    sets: int = Field(..., ge=0)
+    reps: int = Field(..., ge=0)
+    weight: float = Field(..., ge=0)
 
 class LoggedExerciseCreate(LoggedExerciseBase):
     pass
@@ -29,6 +28,6 @@ class LoggedExerciseOut(BaseModel):
 
 class LoggedExerciseCreateByName(BaseModel):
     name: str
-    sets: int
-    reps: int
-    weight: float
+    sets: int = Field(..., ge=0)
+    reps: int = Field(..., ge=0)
+    weight: float = Field(..., ge=0)

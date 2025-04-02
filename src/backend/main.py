@@ -31,6 +31,6 @@ def read_root():
     return {"message": "Welcome to the Fitness Tracker API!"}
 
 # /docs endpoint that React is expecting
-@app.get("/docs", tags=["Docs"])
+@app.get("/custom-docs", tags=["Docs"])
 def get_docs():
     return {"message": "Hello from the backend!"}
