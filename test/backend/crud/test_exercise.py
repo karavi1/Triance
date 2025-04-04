@@ -4,17 +4,38 @@ from src.backend.crud import exercise as crud_exercise
 from src.backend.schemas.exercise import ExerciseCreate, ExerciseUpdate
 
 def test_create_exercise(db):
-    ex = ExerciseCreate(
+    exercise = ExerciseCreate(
         name="Deadlift",
         primary_muscles=["back", "glutes"],
         secondary_muscles=["hamstrings"],
         description="Posterior chain compound lift"
     )
-    created = crud_exercise.create_exercise(db, ex)
+    created = crud_exercise.create_exercise(db, exercise)
 
     assert created.id is not None
     assert created.name == "Deadlift"
     assert "glutes" in created.primary_muscles
+
+def test_create_batch_exercise(db):
+    exercise_1 = ExerciseCreate(
+        name="Deadlift",
+        primary_muscles=["back", "glutes"],
+        secondary_muscles=["hamstrings"],
+        description="Posterior chain compound lift"
+    )
+    exercise_2 = ExerciseCreate(
+        name="Squat",
+        primary_muscles=["quads", "glutes"],
+        secondary_muscles=["hamstrings"],
+        description="Leg compound lift"
+    )
+
+    created = crud_exercise.create_batch_exercise(db, [exercise_1, exercise_2])
+    assert created is not None
+    assert len(created) == 2
+    assert created[0].name == "Deadlift"
+    assert created[1].primary_muscles[0] == "quads"
+
 
 def test_get_exercise_by_id(db):
     created = crud_exercise.create_exercise(

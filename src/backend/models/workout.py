@@ -16,12 +16,12 @@ class Workout(Base):
     logged_exercises: Mapped[List[LoggedExercise]] = relationship("LoggedExercise", cascade="all, delete-orphan")
 
     def __repr__(self):
-        return f'Workout(id={self.id}, user_id={self.user_id}, date={self.date}, logged_exercises={self.logged_exercises})'
+        return f'Workout(id={self.id}, user_id={self.user_id}, workout_date={self.workout_date}, logged_exercises={self.logged_exercises})'
 
     def to_dict(self):
         return {
             "id": self.id,
             "user_id": self.user_id,
-            "date": self.date,
-            "logged_exercises": [logged_exercise.to_dict() for logged_exercise in self.logged_exercises]
+            "workout_date": self.workout_date,
+            "logged_exercises": [le.to_dict() for le in self.logged_exercises]
         }
