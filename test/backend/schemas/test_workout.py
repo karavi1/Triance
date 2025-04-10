@@ -1,6 +1,6 @@
 import pytest
 from uuid import uuid4
-from datetime import date
+from datetime import datetime, timezone
 from pydantic import ValidationError
 
 from src.backend.schemas.workout import (
@@ -84,10 +84,10 @@ def test_valid_workout_out():
     workout = WorkoutOut(
         id=uuid4(),
         user_id=uuid4(),
-        workout_date=date.today(),
+        created_time=datetime.now(timezone.utc),
         notes="Leg day",
         logged_exercises=[make_logged_exercise_out()]
     )
     assert workout.notes == "Leg day"
-    assert workout.workout_date == date.today()
+    assert isinstance(workout.created_time, datetime)
     assert isinstance(workout.logged_exercises[0], LoggedExerciseOut)

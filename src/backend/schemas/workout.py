@@ -1,11 +1,10 @@
 from pydantic import BaseModel, Field
 from uuid import UUID
-from datetime import date
+from datetime import datetime
 from typing import Optional, List
 from src.backend.schemas.logged_exercise import LoggedExerciseCreateByName, LoggedExerciseOut  
 
 class WorkoutBase(BaseModel):
-    workout_date: Optional[date] = None
     notes: Optional[str] = None
 
 class WorkoutCreate(WorkoutBase):
@@ -23,7 +22,7 @@ class WorkoutUpdate(WorkoutBase):
 class WorkoutOut(WorkoutBase):
     id: UUID
     user_id: UUID
-    workout_date: date
+    created_time: datetime
     logged_exercises: List[LoggedExerciseOut] = []
 
     model_config = {

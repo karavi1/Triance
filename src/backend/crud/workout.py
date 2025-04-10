@@ -45,6 +45,15 @@ def create_workout(db: Session, workout_data: WorkoutCreateSimple):
 def get_workout_by_id(db: Session, workout_id: UUID):
     return db.query(Workout).filter(Workout.id == workout_id).first()
 
+def get_last_workout(username: str, db: Session):
+    return ( 
+        db.query(Workout)
+        .join(User, Workout.user_id == User.id)
+        .filter(User.username == username)
+        .order_by(Workout.created_time.desc())
+        .first()
+    )
+
 def get_all_workouts(db: Session):
     return db.query(Workout).all()
 

@@ -9,7 +9,7 @@ class User(Base):
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     email: Mapped[str] = mapped_column(String(255))
-    username: Mapped[str] = mapped_column(String(100))
+    username: Mapped[str] = mapped_column(String(100), unique=True)
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
 
     def __repr__(self):

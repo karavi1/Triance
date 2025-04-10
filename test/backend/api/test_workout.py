@@ -112,3 +112,25 @@ def test_delete_workout_not_found(client):
     response = client.delete(f"/workouts/{uuid4()}")
     assert response.status_code == 404
     assert response.json()["detail"] == "Workout not found"
+
+def test_get_latest_workout(client):
+    setup_user_and_exercise(client)
+
+    # Create two workouts to ensure the latest is returned
+    client.post("/workouts/", json={
+        "username": "workouter",
+        "notes": "Earlier workout",
+        "logged_exercises": [{"name": "Squat", "sets": 3, "reps": 5, "weight": 100.0}]
+    })
+    client.post("/workouts/", json={
+        "username": "workouter",
+        "notes": "Most recent workout",
+        "logged_exercises": [{"name": "Squat", "sets": 4, "reps": 6, "weight": 110.0}]
+    })
+
+    response = client.get("/workouts/latest/workouter")
+    assert response.status_code == 200
+
+    data = response.json()
+    assert "notes" in data
+    assert data["notes"] == "Most recent workout"

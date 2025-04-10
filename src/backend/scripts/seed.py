@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from src.backend.database.configure import SessionLocal
 from src.backend.models import User, Exercise, Workout, LoggedExercise
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 # Map of categories to exercises
 exercise_data = {
@@ -70,8 +70,7 @@ exercise_data = {
     ],
 }
 
-
-# --- SAMPLE USERS AND WORKOUTS ---
+# Updated sample users and workouts
 sample_users = [
     {
         "username": "kaushik",
@@ -79,7 +78,7 @@ sample_users = [
         "workouts": [
             {
                 "notes": "Push Day - Chest & Triceps focus",
-                "workout_date": datetime.utcnow().date() - timedelta(days=4),
+                "created_time": datetime.now(timezone.utc) - timedelta(days=4),
                 "logged_exercises": [
                     ("DB Incline Bench", 4, 10, 32.5),
                     ("Dips", 3, 12, 0),
@@ -89,7 +88,7 @@ sample_users = [
             },
             {
                 "notes": "Leg Day - Quads",
-                "workout_date": datetime.utcnow().date() - timedelta(days=2),
+                "created_time": datetime.now(timezone.utc) - timedelta(days=2),
                 "logged_exercises": [
                     ("DB Squat", 4, 10, 35),
                     ("Leg Extensions", 4, 12, 45),
@@ -105,7 +104,7 @@ sample_users = [
         "workouts": [
             {
                 "notes": "Pull Day - Back & Arms",
-                "workout_date": datetime.utcnow().date() - timedelta(days=3),
+                "created_time": datetime.now(timezone.utc) - timedelta(days=3),
                 "logged_exercises": [
                     ("Pullups", 3, 8, 0),
                     ("Incline DB Hammers", 3, 10, 15),
@@ -115,7 +114,7 @@ sample_users = [
             },
             {
                 "notes": "Leg Day - Hams & Glutes",
-                "workout_date": datetime.utcnow().date() - timedelta(days=1),
+                "created_time": datetime.now(timezone.utc) - timedelta(days=1),
                 "logged_exercises": [
                     ("DB RDL", 4, 10, 40),
                     ("Leg Curls", 4, 12, 35),
@@ -131,7 +130,7 @@ sample_users = [
         "workouts": [
             {
                 "notes": "Push Day - Strength",
-                "workout_date": datetime.utcnow().date() - timedelta(days=5),
+                "created_time": datetime.now(timezone.utc) - timedelta(days=5),
                 "logged_exercises": [
                     ("Dips", 4, 10, 10),
                     ("Skullcrushers", 3, 12, 20),
@@ -140,7 +139,7 @@ sample_users = [
             },
             {
                 "notes": "Pull + Rotator Rehab",
-                "workout_date": datetime.utcnow().date() - timedelta(days=2),
+                "created_time": datetime.now(timezone.utc) - timedelta(days=2),
                 "logged_exercises": [
                     ("SA Lat Pulldown", 3, 10, 35),
                     ("Rotator Cuff", 3, 20, 2.5),
@@ -166,7 +165,7 @@ def seed_users_and_workouts(db: Session):
             existing_workout = db.query(Workout).filter(
                 Workout.user_id == user.id,
                 Workout.notes == workout_data["notes"],
-                Workout.workout_date == workout_data["workout_date"]
+                Workout.created_time == workout_data["created_time"]
             ).first()
 
             if existing_workout:
@@ -177,7 +176,7 @@ def seed_users_and_workouts(db: Session):
                 id=uuid.uuid4(),
                 user_id=user.id,
                 notes=workout_data["notes"],
-                workout_date=workout_data["workout_date"]
+                created_time=workout_data["created_time"]
             )
             db.add(workout)
             db.flush()
