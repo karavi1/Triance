@@ -3,9 +3,11 @@ from uuid import UUID
 from datetime import datetime
 from typing import Optional, List
 from src.backend.schemas.logged_exercise import LoggedExerciseCreateByName, LoggedExerciseOut  
+from src.backend.models.enums import WorkoutType
 
 class WorkoutBase(BaseModel):
     notes: Optional[str] = None
+    workout_type: Optional[WorkoutType] = None
 
 class WorkoutCreate(WorkoutBase):
     user_id: UUID

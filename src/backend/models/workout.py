@@ -1,10 +1,11 @@
-from sqlalchemy import ForeignKey, String
+from sqlalchemy import ForeignKey, String, Enum as SQLEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from uuid import UUID, uuid4
 from datetime import datetime, timezone
 from typing import Optional, List
 from src.backend.models.base import Base
 from src.backend.models.logged_exercise import LoggedExercise
+from src.backend.models.enums import WorkoutType
 
 class Workout(Base):
     __tablename__ = "workouts"
@@ -14,6 +15,7 @@ class Workout(Base):
     created_time: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
     notes: Mapped[Optional[str]] = mapped_column(String(5000), default=None)
     logged_exercises: Mapped[List[LoggedExercise]] = relationship("LoggedExercise", cascade="all, delete-orphan")
+    workout_type: Mapped[WorkoutType] = mapped_column(SQLEnum(WorkoutType), nullable=True)
     
     def __repr__(self):
         return f'Workout(id={self.id}, user_id={self.user_id}, created_time={self.created_time}, logged_exercises={self.logged_exercises})'

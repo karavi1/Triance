@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from src.backend.database.configure import SessionLocal
 from src.backend.models import User, Exercise, Workout, LoggedExercise
+from src.backend.models.enums import WorkoutType
 import uuid
 from datetime import datetime, timedelta, timezone
 
@@ -84,7 +85,8 @@ sample_users = [
                     ("Dips", 3, 12, 0),
                     ("SA Tricep Cable Extension", 3, 15, 10),
                     ("Leaning Cable Lateral Raises", 3, 12, 7.5)
-                ]
+                ],
+                "workout_type": "Push"
             },
             {
                 "notes": "Leg Day - Quads",
@@ -94,7 +96,8 @@ sample_users = [
                     ("Leg Extensions", 4, 12, 45),
                     ("Atg Split Squat", 3, 8, 25),
                     ("Seated Calf Raises", 3, 15, 30)
-                ]
+                ],
+                "workout_type": "Quads"
             }
         ]
     },
@@ -110,7 +113,8 @@ sample_users = [
                     ("Incline DB Hammers", 3, 10, 15),
                     ("DA Cable Rows", 4, 12, 40),
                     ("Lat Pullovers", 3, 10, 20)
-                ]
+                ],
+                "workout_type": "Pull"
             },
             {
                 "notes": "Leg Day - Hams & Glutes",
@@ -120,7 +124,8 @@ sample_users = [
                     ("Leg Curls", 4, 12, 35),
                     ("Cable Hip Abduction", 3, 15, 7.5),
                     ("Tib Raises", 3, 20, 10)
-                ]
+                ],
+                "workout_type": "Hams"
             }
         ]
     },
@@ -135,7 +140,8 @@ sample_users = [
                     ("Dips", 4, 10, 10),
                     ("Skullcrushers", 3, 12, 20),
                     ("Decline Cable Fly", 3, 12, 15)
-                ]
+                ],
+                "workout_type": "Push"
             },
             {
                 "notes": "Pull + Rotator Rehab",
@@ -144,7 +150,8 @@ sample_users = [
                     ("SA Lat Pulldown", 3, 10, 35),
                     ("Rotator Cuff", 3, 20, 2.5),
                     ("Incline DB Preachers", 3, 10, 12.5)
-                ]
+                ],
+                "workout_type": "Pull"
             }
         ]
     }
@@ -176,7 +183,8 @@ def seed_users_and_workouts(db: Session):
                 id=uuid.uuid4(),
                 user_id=user.id,
                 notes=workout_data["notes"],
-                created_time=workout_data["created_time"]
+                created_time=workout_data["created_time"],
+                workout_type=WorkoutType(workout_data["workout_type"])
             )
             db.add(workout)
             db.flush()
