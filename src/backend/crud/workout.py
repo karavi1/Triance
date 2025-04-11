@@ -2,6 +2,7 @@ from http.client import HTTPException
 from sqlalchemy.orm import Session
 from uuid import UUID
 from src.backend.models.user import User
+from src.backend.models.enums import WorkoutType
 from src.backend.models.exercise import Exercise
 from src.backend.models.workout import Workout
 from src.backend.models.logged_exercise import LoggedExercise
@@ -14,7 +15,7 @@ def create_workout(db: Session, workout_data: WorkoutCreateSimple):
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # 2. Create logged_exercises by resolving exercise names
+    # 2. Resolve exercises
     logged_exercises = []
     for entry in workout_data.logged_exercises:
         exercise = db.query(Exercise).filter(Exercise.name == entry.name).first()
@@ -29,10 +30,11 @@ def create_workout(db: Session, workout_data: WorkoutCreateSimple):
         )
         logged_exercises.append(logged_exercise)
 
-    # 3. Create the workout
+    # 3. Create workout with workout_type
     workout = Workout(
         user_id=user.id,
         notes=workout_data.notes,
+        workout_type=workout_data.workout_type,
         logged_exercises=logged_exercises
     )
 
@@ -50,6 +52,15 @@ def get_last_workout(username: str, db: Session):
         db.query(Workout)
         .join(User, Workout.user_id == User.id)
         .filter(User.username == username)
+        .order_by(Workout.created_time.desc())
+        .first()
+    )
+
+def get_last_workout_based_on_type(username: str, workout_type: str, db: Session):
+    return ( 
+        db.query(Workout)
+        .join(User, Workout.user_id == User.id)
+        .filter(User.username == username, Workout.workout_type == WorkoutType(workout_type))
         .order_by(Workout.created_time.desc())
         .first()
     )

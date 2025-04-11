@@ -11,14 +11,21 @@ class ExerciseBase(BaseModel):
 class ExerciseCreate(ExerciseBase):
     pass
 
-class ExerciseUpdate(ExerciseBase):
-    pass
+class ExerciseUpdate(BaseModel):
+    name: Optional[str] = None
+    primary_muscles: Optional[List[str]] = None
+    secondary_muscles: Optional[List[str]] = None
+    description: Optional[str] = None
 
-class ExerciseOut(ExerciseBase):
+class ExerciseOut(BaseModel):
     id: UUID
+    name: str
+    primary_muscles: List[str]
+    secondary_muscles: Optional[List[str]] = None
+    description: Optional[str] = None
 
     model_config = {
-        "from_attributes": True  # replaces orm_mode in Pydantic v2
+        "from_attributes": True  # Required to serialize SQLAlchemy models
     }
 
 class ExerciseSummaryOut(BaseModel):

@@ -14,11 +14,17 @@ def create_exercise(db: Session, exercise_data: ExerciseCreate):
 def create_batch_exercise(db: Session, exercises_data: List[ExerciseCreate]):
     exercises_list = []
     for exercise_data in exercises_data:
+        # Check if exercise already exists by name
+        existing = db.query(Exercise).filter(Exercise.name == exercise_data.name).first()
+        if existing:
+            continue  # Skip duplicates (or collect if you want to return them too)
+
         exercise = Exercise(**exercise_data.model_dump())
         db.add(exercise)
         db.commit()
         db.refresh(exercise)
-        exercises_list += [exercise]
+        exercises_list.append(exercise)
+
     return exercises_list
 
 def get_exercise_by_id(db: Session, exercise_id: UUID):

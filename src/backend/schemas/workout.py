@@ -16,10 +16,12 @@ class WorkoutCreate(WorkoutBase):
 class WorkoutCreateSimple(BaseModel):
     username: str
     notes: Optional[str] = None
+    workout_type: Optional[WorkoutType] = None
     logged_exercises: List[LoggedExerciseCreateByName] = Field(..., min_length=1)
 
-class WorkoutUpdate(WorkoutBase):
-    notes: Optional[str]
+class WorkoutUpdate(BaseModel):
+    notes: Optional[str] = None
+    workout_type: Optional[WorkoutType] = None
 
 class WorkoutOut(WorkoutBase):
     id: UUID

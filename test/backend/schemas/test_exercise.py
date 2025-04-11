@@ -61,3 +61,27 @@ def test_valid_exercise_summary_out():
 
     assert exercise_summary.name == "Overhead Press"
     assert isinstance(exercise_summary.id, type(uuid4()))
+
+def test_valid_exercise_update_partial():
+    update = ExerciseUpdate(description="New description only")
+
+    assert update.description == "New description only"
+    assert update.name is None
+
+def test_valid_exercise_update_full():
+    update = ExerciseUpdate(
+        name="Lateral Raise",
+        primary_muscles=["shoulders"],
+        secondary_muscles=["traps"],
+        description="Isolation movement for lateral delts"
+    )
+
+    assert update.name == "Lateral Raise"
+    assert "shoulders" in update.primary_muscles
+
+def test_invalid_exercise_wrong_type_primary_muscles():
+    with pytest.raises(ValidationError):
+        ExerciseCreate(
+            name="Plank",
+            primary_muscles="core"  # should be a list, not a string
+        )

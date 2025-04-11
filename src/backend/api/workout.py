@@ -4,7 +4,7 @@ from uuid import UUID
 
 from src.backend.database.configure import get_db
 from src.backend.schemas.workout import WorkoutCreateSimple, WorkoutOut
-from src.backend.crud.workout import create_workout, get_workout_by_id, get_all_workouts, delete_workout, get_last_workout
+from src.backend.crud.workout import create_workout, get_workout_by_id, get_all_workouts, delete_workout, get_last_workout, get_last_workout_based_on_type
 
 router = APIRouter()
 
@@ -24,6 +24,13 @@ def get_latest_workout(username: str, db: Session = Depends(get_db)):
     workout = get_last_workout(username, db)
     if not workout:
         return "No workouts"
+    return workout
+
+@router.get("/{username}/latest/{workout_type}")
+def get_latest_workout_based_on_type(username: str, workout_type: str, db: Session = Depends(get_db)):
+    workout = get_last_workout_based_on_type(username, workout_type, db)
+    if not workout:
+        return "No workouts of this workout type"
     return workout
 
 @router.post("/", response_model=WorkoutOut)
