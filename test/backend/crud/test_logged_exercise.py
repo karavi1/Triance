@@ -2,6 +2,7 @@ import pytest
 from uuid import uuid4
 from src.backend.crud import logged_exercise as crud_log
 from src.backend.schemas.logged_exercise import LoggedExerciseCreate
+from src.backend.schemas.logged_exercise_set import LoggedExerciseSetCreate
 from src.backend.schemas.exercise import ExerciseCreate
 from src.backend.schemas.user import UserCreate
 from src.backend.crud import user as crud_user
@@ -18,22 +19,23 @@ def test_log_exercise_and_fetch(db):
         username="loguser",
         logged_exercises=[{
             "name": "Squat",
-            "sets": 3,
-            "reps": 5,
-            "weight": 100.0
+            "sets": [
+                {"set_number": 1, "reps": 5, "weight": 100.0}
+            ]
         }]
     ))
 
     # Create another logged exercise manually
     log = crud_log.log_exercise(db, LoggedExerciseCreate(
         exercise_id=ex.id,
-        sets=4,
-        reps=6,
-        weight=110.0
+        sets=[
+            LoggedExerciseSetCreate(set_number=1, reps=6, weight=110.0),
+            LoggedExerciseSetCreate(set_number=2, reps=5, weight=115.0)
+        ]
     ), workout.id)
 
-    assert log.sets == 4
-    assert log.weight == 110.0
+    assert len(log.sets) == 2
+    assert log.sets[0].weight == 110.0
 
     logs = crud_log.get_logged_exercises_by_workout(db, workout.id)
     assert len(logs) == 2  # 1 from workout create + 1 from manual log
@@ -46,9 +48,9 @@ def test_delete_logged_exercise(db):
         username="logdel",
         logged_exercises=[{
             "name": "Bench",
-            "sets": 3,
-            "reps": 5,
-            "weight": 50.0
+            "sets": [
+                {"set_number": 1, "reps": 5, "weight": 50.0}
+            ]
         }]
     ))
 

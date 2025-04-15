@@ -1,26 +1,23 @@
-from pydantic import BaseModel, Field
-from src.backend.schemas.exercise import ExerciseSummaryOut
+from pydantic import BaseModel
 from uuid import UUID
+from typing import List
+from src.backend.schemas.exercise import ExerciseSummaryOut
+from src.backend.schemas.logged_exercise_set import LoggedExerciseSetCreate, LoggedExerciseSetOut
 
 class LoggedExerciseBase(BaseModel):
     exercise_id: UUID
-    sets: int = Field(..., ge=0)
-    reps: int = Field(..., ge=0)
-    weight: float = Field(..., ge=0)
 
 class LoggedExerciseCreate(LoggedExerciseBase):
-    pass
+    sets: List[LoggedExerciseSetCreate]
 
 class LoggedExerciseUpdate(LoggedExerciseBase):
-    pass
+    sets: List[LoggedExerciseSetCreate]
 
 class LoggedExerciseOut(BaseModel):
     id: UUID
     workout_id: UUID
-    sets: int
-    reps: int
-    weight: float
     exercise: ExerciseSummaryOut
+    sets: List[LoggedExerciseSetOut]
 
     model_config = {
         "from_attributes": True
@@ -28,6 +25,4 @@ class LoggedExerciseOut(BaseModel):
 
 class LoggedExerciseCreateByName(BaseModel):
     name: str
-    sets: int = Field(..., ge=0)
-    reps: int = Field(..., ge=0)
-    weight: float = Field(..., ge=0)
+    sets: List[LoggedExerciseSetCreate]

@@ -10,6 +10,7 @@ from src.backend.schemas.workout import (
     WorkoutOut
 )
 from src.backend.schemas.logged_exercise import LoggedExerciseOut, LoggedExerciseCreateByName
+from src.backend.schemas.logged_exercise_set import LoggedExerciseSetOut, LoggedExerciseSetCreate
 from src.backend.schemas.exercise import ExerciseSummaryOut
 
 # ---------- Helpers ----------
@@ -18,13 +19,26 @@ def make_logged_exercise_out():
     return LoggedExerciseOut(
         id=uuid4(),
         workout_id=uuid4(),
-        sets=3,
-        reps=5,
-        weight=100.0,
         exercise=ExerciseSummaryOut(
             id=uuid4(),
             name="Bench Press"
-        )
+        ),
+        sets=[
+            LoggedExerciseSetOut(
+                id=uuid4(),
+                logged_exercise_id=uuid4(),
+                set_number=1,
+                reps=5,
+                weight=100.0
+            ),
+            LoggedExerciseSetOut(
+                id=uuid4(),
+                logged_exercise_id=uuid4(),
+                set_number=2,
+                reps=5,
+                weight=105.0
+            )
+        ]
     )
 
 # ---------- WorkoutCreate ----------
@@ -55,14 +69,16 @@ def test_valid_workout_create_simple():
         logged_exercises=[
             LoggedExerciseCreateByName(
                 name="Incline Press",
-                sets=3,
-                reps=8,
-                weight=50.0
+                sets=[
+                    LoggedExerciseSetCreate(set_number=1, reps=8, weight=50.0),
+                    LoggedExerciseSetCreate(set_number=2, reps=6, weight=55.0)
+                ]
             )
         ]
     )
     assert workout.username == "kaushik"
     assert workout.logged_exercises[0].name == "Incline Press"
+    assert workout.logged_exercises[0].sets[1].weight == 55.0
 
 def test_invalid_workout_create_simple_missing_exercises():
     with pytest.raises(ValidationError):

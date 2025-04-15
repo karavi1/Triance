@@ -7,30 +7,35 @@ from src.backend.models.exercise import Exercise
 from src.backend.models.workout import Workout
 from src.backend.models.logged_exercise import LoggedExercise
 from src.backend.schemas.workout import WorkoutCreateSimple, WorkoutUpdate
-from src.backend.schemas.logged_exercise import LoggedExerciseCreate
+from src.backend.models.logged_exercise_set import LoggedExerciseSet
 
 def create_workout(db: Session, workout_data: WorkoutCreateSimple):
-    # 1. Get user by username
     user = db.query(User).filter(User.username == workout_data.username).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # 2. Resolve exercises
     logged_exercises = []
     for entry in workout_data.logged_exercises:
         exercise = db.query(Exercise).filter(Exercise.name == entry.name).first()
         if not exercise:
             raise HTTPException(status_code=404, detail=f"Exercise '{entry.name}' not found")
 
+        # Create set entries
+        logged_sets = [
+            LoggedExerciseSet(
+                set_number=s.set_number,
+                reps=s.reps,
+                weight=s.weight
+            )
+            for s in entry.sets
+        ]
+
         logged_exercise = LoggedExercise(
             exercise_id=exercise.id,
-            sets=entry.sets,
-            reps=entry.reps,
-            weight=entry.weight
+            sets=logged_sets
         )
         logged_exercises.append(logged_exercise)
 
-    # 3. Create workout with workout_type
     workout = Workout(
         user_id=user.id,
         notes=workout_data.notes,
@@ -44,7 +49,8 @@ def create_workout(db: Session, workout_data: WorkoutCreateSimple):
 
     return workout
 
-def get_workout_by_id(db: Session, workout_id: UUID):
+
+def get_workout_by_workout_id(db: Session, workout_id: UUID):
     return db.query(Workout).filter(Workout.id == workout_id).first()
 
 def get_last_workout(username: str, db: Session):
@@ -56,7 +62,16 @@ def get_last_workout(username: str, db: Session):
         .first()
     )
 
-def get_last_workout_based_on_type(username: str, workout_type: str, db: Session):
+def get_all_workouts_by_name(username: str, db: Session):
+    return (
+        db.query(Workout)
+        .join(User, Workout.user_id == User.id)
+        .filter(User.username == username)
+        .order_by(Workout.created_time.desc()) # Export this and the one to a different method?
+        .all()
+    )
+
+def get_last_workout_based_on_username_and_type(username: str, workout_type: str, db: Session):
     return ( 
         db.query(Workout)
         .join(User, Workout.user_id == User.id)
