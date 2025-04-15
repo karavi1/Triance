@@ -44,6 +44,8 @@ exercise_data = {
     "Quads": [
         ("DB Squat", ["Quads", "Glutes"], ["Core"],
          "A squat performed with dumbbells to target the quadriceps and glutes."),
+         ("Leg Press", ["Quads", "Glutes"], ["Core", "Hamstrings"],
+          "The leg press is a compound weight training exercise in which the individual pushes a weight or resistance away from them using their legs"),
         ("Seated Calf Raises", ["Calves"], [],
          "An exercise performed seated to target the calf muscles."),
         ("Weighted butterflies", ["Adductors"], [],
@@ -71,11 +73,20 @@ exercise_data = {
     ],
 }
 
-# Updated sample users and workouts
+from datetime import datetime, timedelta, timezone
+import uuid
+from sqlalchemy.orm import Session
+from src.backend.models.user import User
+from src.backend.models.exercise import Exercise
+from src.backend.models.workout import Workout
+from src.backend.models.logged_exercise import LoggedExercise
+from src.backend.models.logged_exercise_set import LoggedExerciseSet
+from src.backend.models.enums import WorkoutType
+
 sample_users = [
     {
-        "username": "kaushik",
-        "email": "kaush.ravi@gmail.com",
+        "username": "adf",
+        "email": "adf@gmail.com",
         "workouts": [
             {
                 "notes": "Push Day - Chest & Triceps focus",
@@ -192,20 +203,29 @@ def seed_users_and_workouts(db: Session):
             for name, sets, reps, weight in workout_data["logged_exercises"]:
                 exercise = db.query(Exercise).filter(Exercise.name == name).first()
                 if exercise:
-                    log = LoggedExercise(
+                    logged_exercise = LoggedExercise(
                         id=uuid.uuid4(),
                         workout_id=workout.id,
                         exercise_id=exercise.id,
-                        sets=sets,
-                        reps=reps,
-                        weight=weight
                     )
-                    db.add(log)
+                    db.add(logged_exercise)
+                    db.flush()
+
+                    # Add one LoggedExerciseSet per set
+                    for i in range(sets):
+                        set_entry = LoggedExerciseSet(
+                            logged_exercise_id=logged_exercise.id,
+                            set_number=i + 1,
+                            reps=reps,
+                            weight=weight
+                        )
+                        db.add(set_entry)
                 else:
                     print(f"Warning: Exercise '{name}' not found.")
 
             print(f"Seeded workout for {user.username}: {workout.notes}")
     db.commit()
+
 
 def populate_exercises(db: Session):
     seen = set()
