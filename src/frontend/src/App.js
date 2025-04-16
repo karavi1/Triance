@@ -1,85 +1,55 @@
-import React, { useState } from "react";
-import axios from "axios";
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+import React from "react";
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import Home from "./pages/Home";
+import Workouts from "./pages/Workouts";
+import Exercises from "./pages/Exercises";
+import Users from "./pages/Users"; // 👈 Import the Users page
 
 function App() {
-  const [message, setMessage] = useState("");
-  const [users, setUsers] = useState([]);
-  const [error, setError] = useState("");
-
-  // Fetch the message from the root endpoint (for initial page load)
-  useState(() => {
-    setError(""); // Clear previous errors
-    axios
-      .get("http://18.191.202.36:8000/")
-      .then((response) => {
-        if (response && response.data && response.data.message) {
-          setMessage(response.data.message);
-        } else {
-          setError("Unexpected response format from root endpoint.");
-        }
-      })
-      .catch((err) => {
-        if (err.response) {
-          setError(
-            `Backend error: ${err.response.status} - ${err.response.data.message || "Unknown error"}`
-          );
-        } else if (err.request) {
-          setError("Network error: Unable to reach the backend.");
-        } else {
-          setError(`Error: ${err.message}`);
-        }
-      });
-  }, []);
-
-  // Function to fetch users when the button is clicked
-  const fetchUsers = () => {
-    setError(""); // Clear previous errors
-    axios
-      .get("http://18.191.202.36:8000/users")
-      .then((response) => {
-        if (response && response.data) {
-          setUsers(response.data); // Assuming the response data is a list of users
-        } else {
-          setError("Unexpected response format from /users endpoint.");
-        }
-      })
-      .catch((err) => {
-        if (err.response) {
-          setError(
-            `Backend error: ${err.response.status} - ${err.response.data.message || "Unknown error"}`
-          );
-        } else if (err.request) {
-          setError("Network error: Unable to reach the backend.");
-        } else {
-          setError(`Error: ${err.message}`);
-        }
-      });
-  };
-
   return (
-    <div style={{ textAlign: "center", marginTop: "50px" }}>
-      <h1>Fitness Tracker</h1>
-      {error ? (
-        <div style={{ color: "red" }}>
-          <strong>Error:</strong> {error}
-        </div>
-      ) : (
-        <>
-          <p>{message}</p>
-          <button onClick={fetchUsers}>Get All Users</button>
-          <h2>Users</h2>
-          {users.length > 0 ? (
-            <ul>
-              {users.map((user) => (
-                <li key={user.id}>{user.name} - {user.email}</li>
-              ))}
+    <Router>
+      {/* Bootstrap Navbar */}
+      <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div className="container-fluid">
+          <Link className="navbar-brand" to="/">CFT</Link>
+          <button
+            className="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarNav"
+          >
+            <span className="navbar-toggler-icon"></span>
+          </button>
+
+          <div className="collapse navbar-collapse" id="navbarNav">
+            <ul className="navbar-nav ms-auto">
+              <li className="nav-item">
+                <Link className="nav-link" to="/">Home</Link>
+              </li>
+              <li className="nav-item">
+                <Link className="nav-link" to="/workouts">Workouts</Link>
+              </li>
+              <li className="nav-item">
+                <Link className="nav-link" to="/exercises">Exercises</Link>
+              </li>
+              <li className="nav-item">
+                <Link className="nav-link" to="/users">Users</Link> {/* ✅ Added Users link */}
+              </li>
             </ul>
-          ) : (
-            <p>No users found.</p>
-          )}
-        </>
-      )}
-    </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Page Routes */}
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/workouts" element={<Workouts />} />
+        <Route path="/exercises" element={<Exercises />} />
+        <Route path="/users" element={<Users />} /> {/* ✅ Added Users route */}
+      </Routes>
+    </Router>
   );
 }
 

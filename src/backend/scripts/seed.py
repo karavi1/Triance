@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from src.backend.database.configure import SessionLocal
-from src.backend.models import User, Exercise, Workout, LoggedExercise
+from src.backend.models import User, Exercise, Workout, LoggedExercise, LoggedExerciseSet
 from src.backend.models.enums import WorkoutType
 import uuid
 from datetime import datetime, timedelta, timezone
@@ -22,6 +22,12 @@ exercise_data = {
          "A cable exercise where the body leans to one side to isolate the lateral deltoid."),
         ("SA Tricep Cable Extension", ["Triceps"], [],
          "A single-arm cable exercise isolating the triceps."),
+        ("Machine Chest Fly", ["Chest"], ["Shoulders"],
+         "machine chest fly"),
+        ("Machine Rear Delt", ["Rear Deltoids"], ["Mid Back"],
+         "machine chest fly"),
+        ("SA Tricep Pushdown", ["Triceps"], [],
+         "A single-arm tricep pushdown for isolation."),
     ],
     "Pull": [
         ("Pullups", ["Lats", "Biceps"], ["Forearms"],
@@ -72,16 +78,6 @@ exercise_data = {
          "An isolation exercise targeting the hamstrings using a machine."),
     ],
 }
-
-from datetime import datetime, timedelta, timezone
-import uuid
-from sqlalchemy.orm import Session
-from src.backend.models.user import User
-from src.backend.models.exercise import Exercise
-from src.backend.models.workout import Workout
-from src.backend.models.logged_exercise import LoggedExercise
-from src.backend.models.logged_exercise_set import LoggedExerciseSet
-from src.backend.models.enums import WorkoutType
 
 sample_users = [
     {
