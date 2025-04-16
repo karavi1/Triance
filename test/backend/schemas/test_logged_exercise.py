@@ -12,6 +12,7 @@ from src.backend.schemas.logged_exercise_set import (
     LoggedExerciseSetOut
 )
 from src.backend.schemas.exercise import ExerciseSummaryOut
+from src.backend.models.enums import ExerciseGroup
 
 # ---------- LoggedExerciseCreate / Update ----------
 
@@ -89,7 +90,8 @@ def test_invalid_logged_exercise_by_name_negative_sets():
 def test_valid_logged_exercise_out():
     ex_summary = ExerciseSummaryOut(
         id=uuid4(),
-        name="Deadlift"
+        name="Deadlift",
+        category=ExerciseGroup.PULL  # ✅ Required now
     )
 
     sets = [
@@ -110,4 +112,5 @@ def test_valid_logged_exercise_out():
     )
 
     assert logged_out.exercise.name == "Deadlift"
+    assert logged_out.exercise.category == ExerciseGroup.PULL
     assert logged_out.sets[0].weight == 120.0

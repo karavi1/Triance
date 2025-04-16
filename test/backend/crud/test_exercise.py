@@ -2,13 +2,15 @@ import pytest
 from uuid import uuid4
 from src.backend.crud import exercise as crud_exercise
 from src.backend.schemas.exercise import ExerciseCreate, ExerciseUpdate
+from src.backend.models.enums import ExerciseGroup
 
 def test_create_exercise(db):
     exercise = ExerciseCreate(
         name="Deadlift",
         primary_muscles=["back", "glutes"],
         secondary_muscles=["hamstrings"],
-        description="Posterior chain compound lift"
+        description="Posterior chain compound lift",
+        category=ExerciseGroup.PULL
     )
     created = crud_exercise.create_exercise(db, exercise)
 
@@ -21,13 +23,15 @@ def test_create_batch_exercise(db):
         name="Deadlift",
         primary_muscles=["back", "glutes"],
         secondary_muscles=["hamstrings"],
-        description="Posterior chain compound lift"
+        description="Posterior chain compound lift",
+        category=ExerciseGroup.PULL
     )
     exercise_2 = ExerciseCreate(
         name="Squat",
         primary_muscles=["quads", "glutes"],
         secondary_muscles=["hamstrings"],
-        description="Leg compound lift"
+        description="Leg compound lift",
+        category=ExerciseGroup.QUADS
     )
 
     created = crud_exercise.create_batch_exercise(db, [exercise_1, exercise_2])
@@ -36,7 +40,6 @@ def test_create_batch_exercise(db):
     assert created[0].name == "Deadlift"
     assert created[1].primary_muscles[0] == "quads"
 
-
 def test_get_exercise_by_id(db):
     created = crud_exercise.create_exercise(
         db,
@@ -44,7 +47,8 @@ def test_get_exercise_by_id(db):
             name="Pull-up",
             primary_muscles=["lats", "biceps"],
             secondary_muscles=["shoulders"],
-            description="Bodyweight upper-body pulling movement"
+            description="Bodyweight upper-body pulling movement",
+            category=ExerciseGroup.PULL
         )
     )
     fetched = crud_exercise.get_exercise_by_id(db, created.id)
@@ -56,11 +60,13 @@ def test_get_all_exercises(db):
     crud_exercise.create_exercise(db, ExerciseCreate(
         name="Bench Press",
         primary_muscles=["chest", "triceps"],
-        secondary_muscles=["shoulders"]
+        secondary_muscles=["shoulders"],
+        category=ExerciseGroup.PUSH
     ))
     crud_exercise.create_exercise(db, ExerciseCreate(
         name="Squat",
-        primary_muscles=["quads", "glutes"]
+        primary_muscles=["quads", "glutes"],
+        category=ExerciseGroup.QUADS
     ))
 
     all_exercises = crud_exercise.get_all_exercises(db)
@@ -71,7 +77,8 @@ def test_get_all_exercises(db):
 def test_update_exercise(db):
     created = crud_exercise.create_exercise(db, ExerciseCreate(
         name="Row",
-        primary_muscles=["back"]
+        primary_muscles=["back"],
+        category=ExerciseGroup.PULL
     ))
 
     updated = crud_exercise.update_exercise(db, created.id, ExerciseUpdate(
@@ -92,7 +99,8 @@ def test_update_exercise_invalid_id(db):
 def test_delete_exercise(db):
     created = crud_exercise.create_exercise(db, ExerciseCreate(
         name="Overhead Press",
-        primary_muscles=["shoulders"]
+        primary_muscles=["shoulders"],
+        category=ExerciseGroup.PUSH
     ))
     deleted = crud_exercise.delete_exercise(db, created.id)
 

@@ -2,7 +2,7 @@ import pytest
 from uuid import uuid4
 from datetime import datetime, timezone
 from pydantic import ValidationError
-
+from src.backend.models.enums import ExerciseGroup
 from src.backend.schemas.workout import (
     WorkoutCreate,
     WorkoutCreateSimple,
@@ -21,7 +21,8 @@ def make_logged_exercise_out():
         workout_id=uuid4(),
         exercise=ExerciseSummaryOut(
             id=uuid4(),
-            name="Bench Press"
+            name="Bench Press",
+            category=ExerciseGroup.PUSH
         ),
         sets=[
             LoggedExerciseSetOut(
@@ -66,6 +67,7 @@ def test_valid_workout_create_simple():
     workout = WorkoutCreateSimple(
         username="kaushik",
         notes="Push day",
+        category=ExerciseGroup.PUSH,
         logged_exercises=[
             LoggedExerciseCreateByName(
                 name="Incline Press",
@@ -85,6 +87,7 @@ def test_invalid_workout_create_simple_missing_exercises():
         WorkoutCreateSimple(
             username="kaushik",
             notes="forgot exercises",
+            category=ExerciseGroup.PUSH,
             logged_exercises=[]
         )
 
@@ -102,6 +105,7 @@ def test_valid_workout_out():
         user_id=uuid4(),
         created_time=datetime.now(timezone.utc),
         notes="Leg day",
+        workout_type=ExerciseGroup.QUADS,
         logged_exercises=[make_logged_exercise_out()]
     )
     assert workout.notes == "Leg day"

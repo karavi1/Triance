@@ -6,7 +6,8 @@ def test_create_exercise(client):
         "name": "Bench Press",
         "primary_muscles": ["chest", "triceps"],
         "secondary_muscles": ["shoulders"],
-        "description": "Upper-body compound pressing movement"
+        "description": "Upper-body compound pressing movement",
+        "category": "Push"
     })
 
     assert response.status_code == 200
@@ -18,7 +19,8 @@ def test_create_exercise(client):
 def test_create_exercise_minimal_fields(client):
     response = client.post("/exercises/", json={
         "name": "Lunge",
-        "primary_muscles": ["quads"]
+        "primary_muscles": ["quads"],
+        "category": "Quads"
     })
 
     assert response.status_code == 200
@@ -32,7 +34,8 @@ def test_get_exercise_by_id(client):
     # Create exercise
     response = client.post("/exercises/", json={
         "name": "Squat",
-        "primary_muscles": ["quads", "glutes"]
+        "primary_muscles": ["quads", "glutes"],
+        "category": "Quads"
     })
     exercise_id = response.json()["id"]
 
@@ -49,11 +52,13 @@ def test_get_exercise_by_id_not_found(client):
 def test_get_all_exercises(client):
     client.post("/exercises/", json={
         "name": "Deadlift",
-        "primary_muscles": ["back", "glutes"]
+        "primary_muscles": ["back", "glutes"],
+        "category": "Pull"
     })
     client.post("/exercises/", json={
         "name": "Overhead Press",
-        "primary_muscles": ["shoulders"]
+        "primary_muscles": ["shoulders"],
+        "category": "Push"
     })
 
     response = client.get("/exercises/")
@@ -67,7 +72,8 @@ def test_get_all_exercises(client):
 def test_delete_exercise(client):
     response = client.post("/exercises/", json={
         "name": "Barbell Row",
-        "primary_muscles": ["back"]
+        "primary_muscles": ["back"],
+        "category": "Pull"
     })
     exercise_id = response.json()["id"]
 
@@ -85,7 +91,11 @@ def test_delete_exercise_not_found(client):
     assert response.json()["detail"] == "Exercise not found"
 
 def test_create_duplicate_exercise(client):
-    exercise_data = {"name": "Deadlift", "primary_muscles": ["back"]}
+    exercise_data = {
+        "name": "Deadlift",
+        "primary_muscles": ["back"],
+        "category": "Pull"
+    }
 
     first = client.post("/exercises/", json=exercise_data)
     assert first.status_code == 200
@@ -97,11 +107,12 @@ def test_create_duplicate_exercise(client):
 def test_update_exercise(client):
     create_resp = client.post("/exercises/", json={
         "name": "Cable Row",
-        "primary_muscles": ["back"]
+        "primary_muscles": ["back"],
+        "category": "Pull"
     })
     exercise_id = create_resp.json()["id"]
 
-    patch_resp = client.patch(f"/exercises/?exercise_id={exercise_id}", json={
+    patch_resp = client.patch(f"/exercises/{exercise_id}", json={
         "description": "Updated description"
     })
 
@@ -110,17 +121,15 @@ def test_update_exercise(client):
 
 def test_create_batch_exercises(client):
     payload = [
-        {"name": "Pushup_Batch1", "primary_muscles": ["chest"]},
-        {"name": "Plank_Batch1", "primary_muscles": ["core"]}
+        {"name": "Pushup_Batch1", "primary_muscles": ["chest"], "category": "Push"},
+        {"name": "Plank_Batch1", "primary_muscles": ["core"], "category": "Custom"}
     ]
 
-    response = client.post("/exercises/batch/", json=payload)
+    response = client.post("/exercises/batch", json=payload)
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, list), f"Unexpected response: {data}"
     assert len(data) == 2
-    print(data)
     names = [e["name"] for e in data]
     assert "Pushup_Batch1" in names
     assert "Plank_Batch1" in names
-

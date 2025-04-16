@@ -1,83 +1,82 @@
 from sqlalchemy.orm import Session
 from src.backend.database.configure import SessionLocal
 from src.backend.models import User, Exercise, Workout, LoggedExercise, LoggedExerciseSet
-from src.backend.models.enums import WorkoutType
+from src.backend.models.enums import ExerciseGroup
 import uuid
 from datetime import datetime, timedelta, timezone
 
 # Map of categories to exercises
 exercise_data = {
     "Push": [
-        ("Dips", ["Chest", "Triceps"], ["Shoulders"],
-         "A bodyweight exercise targeting the chest and triceps by lowering and raising the body on parallel bars."),
-        ("DB Incline Bench", ["Chest"], ["Shoulders", "Triceps"],
-         "An incline bench press using dumbbells to emphasize the upper portion of the chest."),
-        ("DB Rear Delts", ["Rear Deltoids"], ["Traps"],
-         "An exercise focusing on the rear deltoid muscles using dumbbells."),
-        ("Skullcrushers", ["Triceps"], [],
-         "An isolation exercise targeting the triceps by lowering a weight towards the forehead."),
-        ("Decline Cable Fly", ["Chest"], ["Shoulders"],
-         "A cable exercise performed on a decline bench to target the lower chest."),
-        ("Leaning Cable Lateral Raises", ["Lateral Deltoids"], ["Traps"],
-         "A cable exercise where the body leans to one side to isolate the lateral deltoid."),
-        ("SA Tricep Cable Extension", ["Triceps"], [],
-         "A single-arm cable exercise isolating the triceps."),
-        ("Machine Chest Fly", ["Chest"], ["Shoulders"],
-         "machine chest fly"),
-        ("Machine Rear Delt", ["Rear Deltoids"], ["Mid Back"],
-         "machine chest fly"),
-        ("SA Tricep Pushdown", ["Triceps"], [],
-         "A single-arm tricep pushdown for isolation."),
+        ("Dips", ["Chest", "Triceps"], ["Shoulders"], "A bodyweight exercise targeting the chest and triceps by lowering and raising the body on parallel bars."),
+        ("DB Incline Bench", ["Chest"], ["Shoulders", "Triceps"], "An incline bench press using dumbbells to emphasize the upper portion of the chest."),
+        ("DB Rear Delts", ["Rear Deltoids"], ["Traps"], "An exercise focusing on the rear deltoid muscles using dumbbells."),
+        ("Skullcrushers", ["Triceps"], [], "An isolation exercise targeting the triceps by lowering a weight towards the forehead."),
+        ("Decline Cable Fly", ["Chest"], ["Shoulders"], "A cable exercise performed on a decline bench to target the lower chest."),
+        ("Leaning Cable Lateral Raises", ["Lateral Deltoids"], ["Traps"], "A cable exercise where the body leans to one side to isolate the lateral deltoid."),
+        ("SA Tricep Cable Extension", ["Triceps"], [], "A single-arm cable exercise isolating the triceps."),
+        ("Machine Chest Fly", ["Chest"], ["Shoulders"], "Machine chest fly."),
+        ("Machine Rear Delt", ["Rear Deltoids"], ["Mid Back"], "Machine rear delt fly."),
+        ("SA Tricep Pushdown", ["Triceps"], [], "A single-arm tricep pushdown for isolation."),
     ],
     "Pull": [
-        ("Pullups", ["Lats", "Biceps"], ["Forearms"],
-         "A bodyweight exercise where the body is pulled up towards a bar, engaging the lats and biceps."),
-        ("SA Lat Pulldown", ["Lats"], ["Rear Delts"],
-         "A single-arm cable exercise pulling a weight down towards the shoulder to target the lats."),
-        ("Incline DB Preachers", ["Biceps"], [],
-         "An incline bench bicep curl performed with dumbbells."),
-        ("Lat Pullovers", ["Lats"], ["Chest"],
-         "An exercise where a weight is moved in an arc over the head to target the lats."),
-        ("Incline DB Hammers", ["Biceps", "Forearms"], [],
-         "An incline bench hammer curl performed with dumbbells."),
-        ("DA Cable Rows", ["Mid Back", "Lats"], ["Rear Delts"],
-         "A double-arm cable row targeting the mid-back and lats."),
-        ("Rotator Cuff", ["Rotator Cuff"], [],
-         "Exercises designed to strengthen the rotator cuff muscles."),
-        ("Back and QL Extension", ["Erector Spinae", "Quadratus Lumborum"], [],
-         "An exercise targeting the lower back and quadratus lumborum muscles."),
+        ("Pullups", ["Lats", "Biceps"], ["Forearms"], "A bodyweight exercise where the body is pulled up towards a bar, engaging the lats and biceps."),
+        ("SA Lat Pulldown", ["Lats"], ["Rear Delts"], "A single-arm cable exercise pulling a weight down towards the shoulder to target the lats."),
+        ("Incline DB Preachers", ["Biceps"], [], "An incline bench bicep curl performed with dumbbells."),
+        ("Lat Pullovers", ["Lats"], ["Chest"], "An exercise where a weight is moved in an arc over the head to target the lats."),
+        ("Incline DB Hammers", ["Biceps", "Forearms"], [], "An incline bench hammer curl performed with dumbbells."),
+        ("DA Cable Rows", ["Mid Back", "Lats"], ["Rear Delts"], "A double-arm cable row targeting the mid-back and lats."),
+        ("Rotator Cuff", ["Rotator Cuff"], [], "Exercises designed to strengthen the rotator cuff muscles."),
+        ("Back and QL Extension", ["Erector Spinae", "Quadratus Lumborum"], [], "An exercise targeting the lower back and quadratus lumborum muscles."),
     ],
     "Quads": [
-        ("DB Squat", ["Quads", "Glutes"], ["Core"],
-         "A squat performed with dumbbells to target the quadriceps and glutes."),
-         ("Leg Press", ["Quads", "Glutes"], ["Core", "Hamstrings"],
-          "The leg press is a compound weight training exercise in which the individual pushes a weight or resistance away from them using their legs"),
-        ("Seated Calf Raises", ["Calves"], [],
-         "An exercise performed seated to target the calf muscles."),
-        ("Weighted butterflies", ["Adductors"], [],
-         "An exercise targeting the inner thigh muscles using added weight."),
-        ("Cossack Squat", ["Quads", "Adductors"], ["Glutes"],
-         "A side-to-side squat movement targeting the quads and adductors."),
-        ("Atg Split Squat", ["Quads"], ["Glutes", "Hamstrings"],
-         "A deep split squat emphasizing the quadriceps."),
-        ("Leg Extensions", ["Quads"], [],
-         "An isolation exercise targeting the quadriceps using a machine."),
+        ("DB Squat", ["Quads", "Glutes"], ["Core"], "A squat performed with dumbbells to target the quadriceps and glutes."),
+        ("Leg Press", ["Quads", "Glutes"], ["Core", "Hamstrings"], "The leg press is a compound weight training exercise in which the individual pushes a weight or resistance away from them using their legs."),
+        ("Seated Calf Raises", ["Calves"], [], "An exercise performed seated to target the calf muscles."),
+        ("Weighted butterflies", ["Adductors"], [], "An exercise targeting the inner thigh muscles using added weight."),
+        ("Cossack Squat", ["Quads", "Adductors"], ["Glutes"], "A side-to-side squat movement targeting the quads and adductors."),
+        ("Atg Split Squat", ["Quads"], ["Glutes", "Hamstrings"], "A deep split squat emphasizing the quadriceps."),
+        ("Leg Extensions", ["Quads"], [], "An isolation exercise targeting the quadriceps using a machine."),
     ],
     "Hams": [
-        ("DB RDL", ["Hamstrings", "Glutes"], ["Lower Back"],
-         "A Romanian deadlift performed with dumbbells to target the hamstrings and glutes."),
-        ("Cable Hip Abduction", ["Glute Medius"], [],
-         "A cable exercise moving the leg away from the body's midline to target the glute medius."),
-        ("Reverse squat/Hip Flexor", ["Hip Flexors"], ["Quads"],
-         "An exercise targeting the hip flexors and quadriceps."),
-        ("Angled Calf Raises", ["Calves"], [],
-         "Calf raises performed on an angled platform to target the calf muscles."),
-        ("Tib Raises", ["Tibialis Anterior"], [],
-         "An exercise targeting the front of the lower leg."),
-        ("Leg Curls", ["Hamstrings"], [],
-         "An isolation exercise targeting the hamstrings using a machine."),
+        ("DB RDL", ["Hamstrings", "Glutes"], ["Lower Back"], "A Romanian deadlift performed with dumbbells to target the hamstrings and glutes."),
+        ("Cable Hip Abduction", ["Glute Medius"], [], "A cable exercise moving the leg away from the body's midline to target the glute medius."),
+        ("Reverse squat/Hip Flexor", ["Hip Flexors"], ["Quads"], "An exercise targeting the hip flexors and quadriceps."),
+        ("Angled Calf Raises", ["Calves"], [], "Calf raises performed on an angled platform to target the calf muscles."),
+        ("Tib Raises", ["Tibialis Anterior"], [], "An exercise targeting the front of the lower leg."),
+        ("Leg Curls", ["Hamstrings"], [], "An isolation exercise targeting the hamstrings using a machine."),
     ],
 }
+
+def populate_exercises(db: Session):
+    seen = set()
+    for category, exercises in exercise_data.items():
+        try:
+            enum_category = ExerciseGroup[category.upper().replace(" ", "_")]
+        except KeyError:
+            print(f"Warning: Invalid ExerciseGroup '{category}'")
+            continue
+
+        for name, primary, secondary, description in exercises:
+            if name in seen:
+                continue
+            seen.add(name)
+
+            exists = db.query(Exercise).filter(Exercise.name == name).first()
+            if not exists:
+                ex = Exercise(
+                    id=uuid.uuid4(),
+                    name=name,
+                    category=enum_category,
+                    primary_muscles=primary,
+                    secondary_muscles=secondary or None,
+                    description=description
+                )
+                db.add(ex)
+                print(f"Added exercise: {name} [{enum_category.value}]")
+            else:
+                print(f"Exercise '{name}' already exists.")
+    db.commit()
 
 sample_users = [
     {
@@ -191,7 +190,7 @@ def seed_users_and_workouts(db: Session):
                 user_id=user.id,
                 notes=workout_data["notes"],
                 created_time=workout_data["created_time"],
-                workout_type=WorkoutType(workout_data["workout_type"])
+                workout_type=ExerciseGroup(workout_data["workout_type"])
             )
             db.add(workout)
             db.flush()
@@ -207,7 +206,6 @@ def seed_users_and_workouts(db: Session):
                     db.add(logged_exercise)
                     db.flush()
 
-                    # Add one LoggedExerciseSet per set
                     for i in range(sets):
                         set_entry = LoggedExerciseSet(
                             logged_exercise_id=logged_exercise.id,
@@ -220,29 +218,6 @@ def seed_users_and_workouts(db: Session):
                     print(f"Warning: Exercise '{name}' not found.")
 
             print(f"Seeded workout for {user.username}: {workout.notes}")
-    db.commit()
-
-
-def populate_exercises(db: Session):
-    seen = set()
-    for category, exercises in exercise_data.items():
-        for name, primary, secondary, description in exercises:
-            if name in seen:
-                continue
-            seen.add(name)
-            exists = db.query(Exercise).filter(Exercise.name == name).first()
-            if not exists:
-                ex = Exercise(
-                    id=uuid.uuid4(),
-                    name=name,
-                    primary_muscles=primary,
-                    secondary_muscles=secondary or None,
-                    description=description
-                )
-                db.add(ex)
-                print(f"Added exercise: {name}")
-            else:
-                print(f"Exercise '{name}' already exists.")
     db.commit()
 
 def main():

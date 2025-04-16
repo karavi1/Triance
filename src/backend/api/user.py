@@ -1,28 +1,48 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from uuid import UUID
 
 from src.backend.database.configure import get_db
-from src.backend.schemas.user import UserCreate
-from src.backend.crud.user import create_user, get_user_by_id, delete_user, get_all_users
+from src.backend.schemas.user import UserCreate, UserOut
+from src.backend.crud.user import (
+    create_user,
+    get_user_by_id,
+    get_all_users,
+    delete_user,
+)
 
 router = APIRouter()
 
-@router.post("/")
-def create_new_user(user: UserCreate, db: Session = Depends(get_db)):
+@router.post("/", response_model=UserOut, status_code=status.HTTP_200_OK)
+def create_user_handler(user: UserCreate, db: Session = Depends(get_db)):
+    """
+    Create a new user account.
+    """
     return create_user(db, user)
 
-@router.get("/{user_id}")
-def get_user(user_id: UUID, db: Session = Depends(get_db)):
+@router.get("/{user_id}", response_model=UserOut)
+def get_user_by_id_handler(user_id: UUID, db: Session = Depends(get_db)):
+    """
+    Get a single user by their UUID.
+    """
     user = get_user_by_id(db, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
-@router.get("/")
-def get_every_user(db: Session = Depends(get_db)):
+@router.get("/", response_model=list[UserOut])
+def get_all_users_handler(db: Session = Depends(get_db)):
+    """
+    Get a list of all users.
+    """
     return get_all_users(db)
 
-@router.delete("/{user_id}")
-def delete_this_user(user_id: UUID, db: Session = Depends(get_db)):
-    return delete_user(db, user_id)
+@router.delete("/{user_id}", response_model=bool)
+def delete_user_handler(user_id: UUID, db: Session = Depends(get_db)):
+    """
+    Delete a user by UUID.
+    """
+    success = delete_user(db, user_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="User not found")
+    return success

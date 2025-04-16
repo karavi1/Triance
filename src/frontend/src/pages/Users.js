@@ -11,32 +11,35 @@ export default function Users() {
 
   const fetchAllUsers = async () => {
     try {
-      const res = await axios.get(BASE_URL + "/");
+      const res = await axios.get(BASE_URL);
       setUsers(res.data);
       setMessage("");
     } catch (err) {
-      setMessage("Error fetching users");
+      setMessage("❌ Failed to fetch users");
     }
   };
 
   const fetchUserById = async () => {
+    if (!userId) return;
+
     try {
       const res = await axios.get(`${BASE_URL}/${userId}`);
       setSelectedUser(res.data);
       setMessage("");
     } catch (err) {
       setSelectedUser(null);
-      setMessage("User not found");
+      setMessage("⚠️ User not found");
     }
   };
 
   const deleteUser = async (id) => {
     try {
       await axios.delete(`${BASE_URL}/${id}`);
-      setMessage("User deleted");
+      setMessage("✅ User deleted successfully");
+      setSelectedUser(null);
       fetchAllUsers();
     } catch (err) {
-      setMessage("Failed to delete user");
+      setMessage("❌ Failed to delete user");
     }
   };
 
@@ -64,11 +67,18 @@ export default function Users() {
             Fetch
           </button>
         </div>
+
         {selectedUser && (
-          <div className="mt-3">
+          <div className="mt-3 border p-3 rounded bg-light">
             <p><strong>Username:</strong> {selectedUser.username}</p>
             <p><strong>Email:</strong> {selectedUser.email}</p>
             <p><strong>ID:</strong> {selectedUser.id}</p>
+            <button
+              className="btn btn-sm btn-danger"
+              onClick={() => deleteUser(selectedUser.id)}
+            >
+              Delete This User
+            </button>
           </div>
         )}
       </div>

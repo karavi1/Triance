@@ -18,18 +18,19 @@ export default function Workouts() {
       setMessage("");
     } catch (err) {
       setSingleWorkout(null);
-      setMessage("Workout not found");
+      setMessage("❌ Workout not found");
     }
   };
 
   const fetchByUser = async () => {
     try {
       const res = await axios.get(`${BASE_URL}/workouts/user/${username}`);
-      setSingleWorkout(res.data[res.data.length - 1]); // Most recent in list
+      const latest = res.data[res.data.length - 1];
+      setSingleWorkout(latest);
       setMessage("");
     } catch (err) {
       setSingleWorkout(null);
-      setMessage("No workouts for that user");
+      setMessage("⚠️ No workouts for that user");
     }
   };
 
@@ -40,7 +41,7 @@ export default function Workouts() {
       setMessage("");
     } catch (err) {
       setSingleWorkout(null);
-      setMessage("No latest workout found");
+      setMessage("⚠️ No latest workout found");
     }
   };
 
@@ -51,7 +52,7 @@ export default function Workouts() {
       setMessage("");
     } catch (err) {
       setSingleWorkout(null);
-      setMessage("No latest workout of that type found");
+      setMessage("⚠️ No workout of this type found for user");
     }
   };
 
@@ -88,10 +89,10 @@ export default function Workouts() {
             onChange={(e) => setUsername(e.target.value)}
           />
           <button className="btn btn-outline-primary" onClick={fetchByUser}>
-            Get All (show most recent)
+            Get All (Most Recent Shown)
           </button>
           <button className="btn btn-outline-secondary" onClick={fetchLatestByUser}>
-            Get Latest
+            Get Latest Workout
           </button>
         </div>
 
@@ -105,6 +106,10 @@ export default function Workouts() {
             <option value="Pull">Pull</option>
             <option value="Quads">Quads</option>
             <option value="Hams">Hams</option>
+            <option value="Upper">Upper</option>
+            <option value="Lower">Lower</option>
+            <option value="Full Body">Full Body</option>
+            <option value="Custom">Custom</option>
           </select>
           <button className="btn btn-outline-success" onClick={fetchLatestByUserAndType}>
             Get Latest by Type
@@ -117,9 +122,10 @@ export default function Workouts() {
         <div className="card p-3 mb-4">
           <h5>Workout Details</h5>
           <p><strong>User:</strong> {singleWorkout.username}</p>
-          <p><strong>Category:</strong> {singleWorkout.category}</p>
-          <p><strong>Date:</strong> {new Date(singleWorkout.workout_date).toLocaleString()}</p>
-          <ul className="list-group">
+          <p><strong>Workout Type:</strong> {singleWorkout.workout_type || "N/A"}</p>
+          <p><strong>Date:</strong> {new Date(singleWorkout.created_time || singleWorkout.workout_date).toLocaleString()}</p>
+
+          <ul className="list-group mt-3">
             {singleWorkout.logged_exercises.map((ex, idx) => (
               <li key={idx} className="list-group-item">
                 <strong>{ex.exercise_name}</strong>

@@ -13,23 +13,29 @@ const emptyExercise = {
 export default function CreateWorkout() {
   const [username, setUsername] = useState("");
   const [notes, setNotes] = useState("");
-  const [category, setCategory] = useState("Push");
+  const [category, setCategory] = useState("");
   const [loggedExercises, setLoggedExercises] = useState([emptyExercise]);
   const [message, setMessage] = useState("");
 
   const [users, setUsers] = useState([]);
   const [exercises, setExercises] = useState([]);
+  const [categories, setCategories] = useState([]);
 
   useEffect(() => {
-    axios
-      .get(`${BASE_URL}/users`)
+    axios.get(`${BASE_URL}/users`)
       .then((res) => setUsers(res.data))
       .catch((err) => console.error("Error fetching users:", err));
 
-    axios
-      .get(`${BASE_URL}/exercises`)
+    axios.get(`${BASE_URL}/exercises`)
       .then((res) => setExercises(res.data))
       .catch((err) => console.error("Error fetching exercises:", err));
+
+    axios.get(`${BASE_URL}/exercises/categories`)
+      .then((res) => setCategories(res.data))
+      .catch((err) => {
+        console.error("Error fetching categories:", err);
+        setCategories(["Push", "Pull", "Quads", "Hams", "Upper", "Lower", "Full Body", "Custom"]);
+      });
   }, []);
 
   const handleExerciseChange = (index, field, value) => {
@@ -64,7 +70,7 @@ export default function CreateWorkout() {
       setMessage("✅ Workout created successfully!");
       setUsername("");
       setNotes("");
-      setCategory("Push");
+      setCategory("");
       setLoggedExercises([emptyExercise]);
     } catch (err) {
       console.error(err);
@@ -115,15 +121,16 @@ export default function CreateWorkout() {
             className="form-select"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
+            required
           >
-            <option value="Push">Push</option>
-            <option value="Pull">Pull</option>
-            <option value="Quads">Quads</option>
-            <option value="Hams">Hams</option>
+            <option value="">Select a category</option>
+            {categories.map((cat, i) => (
+              <option key={i} value={cat}>{cat}</option>
+            ))}
           </select>
         </div>
 
-        {/* Exercise Section */}
+        {/* Exercises */}
         <div className="mb-4">
           <h5>Exercises</h5>
           {loggedExercises.map((ex, idx) => (
@@ -202,7 +209,6 @@ export default function CreateWorkout() {
           </button>
         </div>
 
-        {/* Submit Button */}
         <button type="submit" className="btn btn-success">
           Submit Workout
         </button>

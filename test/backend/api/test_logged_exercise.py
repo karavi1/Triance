@@ -1,32 +1,16 @@
 import pytest
 from uuid import uuid4
 
-def setup_logged_workout(client):
-    # Create user and exercise
-    client.post("/users/", json={"email": "logapi@example.com", "username": "logapiuser"})
-    client.post("/exercises/", json={"name": "Row", "primary_muscles": ["back"]})
+def test_log_new_exercise(client, setup_logged_workout_api):
+    setup = setup_logged_workout_api()
+    workout_id = setup["workout_id"]
 
-    # Create workout with one logged exercise (nested sets)
-    resp = client.post("/workouts/", json={
-        "username": "logapiuser",
-        "notes": "Back day",
-        "logged_exercises": [{
-            "name": "Row",
-            "sets": [
-                {"set_number": 1, "reps": 10, "weight": 80.0}
-            ]
-        }]
-    })
-    return resp.json()["id"]  # workout_id
-
-def test_log_new_exercise(client):
-    workout_id = setup_logged_workout(client)
-
-    # Get the exercise ID
+    # Get exercise ID from existing exercises
     ex_resp = client.get("/exercises/")
+    assert ex_resp.status_code == 200
     exercise_id = ex_resp.json()[0]["id"]
 
-    # Log another exercise with multiple sets
+    # Log a new exercise to the workout
     log_resp = client.post(f"/logged_exercises/{workout_id}/log", json={
         "exercise_id": exercise_id,
         "sets": [
@@ -42,8 +26,9 @@ def test_log_new_exercise(client):
     assert len(data["sets"]) == 2
     assert data["sets"][0]["weight"] == 90.0
 
-def test_get_logged_exercises_by_workout(client):
-    workout_id = setup_logged_workout(client)
+def test_get_logged_exercises_by_workout(client, setup_logged_workout_api):
+    setup = setup_logged_workout_api()
+    workout_id = setup["workout_id"]
 
     response = client.get(f"/logged_exercises/{workout_id}/entries")
     assert response.status_code == 200
@@ -53,26 +38,29 @@ def test_get_logged_exercises_by_workout(client):
     assert "sets" in data[0]
     assert isinstance(data[0]["sets"], list)
 
-def test_delete_logged_exercise(client):
-    workout_id = setup_logged_workout(client)
+def test_delete_logged_exercise(client, setup_logged_workout_api):
+    setup = setup_logged_workout_api()
+    workout_id = setup["workout_id"]
 
-    # Get exercise_id from the existing log
+    # Get first exercise ID from logged entries
     log_resp = client.get(f"/logged_exercises/{workout_id}/entries")
     assert log_resp.status_code == 200
     exercise_id = log_resp.json()[0]["exercise"]["id"]
 
-    # Delete it
+    # Delete that logged exercise
     del_resp = client.delete(f"/logged_exercises/{workout_id}/entry/{exercise_id}")
     assert del_resp.status_code == 204
-    assert del_resp.text == ""  # 204 No Content
+    assert del_resp.text == ""
 
-    # Confirm it's gone
+    # Confirm deletion
     confirm = client.get(f"/logged_exercises/{workout_id}/entries")
+    assert confirm.status_code == 200
     assert len(confirm.json()) == 0
 
-def test_delete_logged_exercise_not_found(client):
-    workout_id = setup_logged_workout(client)
-    fake_exercise_id = uuid4()
+def test_delete_logged_exercise_not_found(client, setup_logged_workout_api):
+    setup = setup_logged_workout_api()
+    workout_id = setup["workout_id"]
+    fake_exercise_id = str(uuid4())
 
     response = client.delete(f"/logged_exercises/{workout_id}/entry/{fake_exercise_id}")
     assert response.status_code == 404
