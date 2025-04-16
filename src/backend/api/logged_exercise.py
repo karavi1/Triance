@@ -12,6 +12,8 @@ from src.backend.crud.logged_exercise import (
 
 router = APIRouter()
 
+### ONLY FOR TESTING, GOAL IS TO NEVER EXPOSE THESE, SO THAT WE CAN DO EVERYTHING FROM THE WORKOUTS POV. SIMPLIFIES USER EXPERIENCE AND INTERFACE
+
 @router.post("/{workout_id}/log", response_model=LoggedExerciseOut, status_code=status.HTTP_201_CREATED)
 def create_logged_exercise(workout_id: UUID, entry: LoggedExerciseCreate, db: Session = Depends(get_db)):
     """

@@ -56,7 +56,7 @@ export default function Dashboard() {
 
   return (
     <div className="container mt-5 mb-5">
-      <h2 className="mb-4">📊 Workout Dashboard</h2>
+      <h2 className="mb-4">📊 (Dummy) Workout Dashboard</h2>
 
       {/* Stat Cards */}
       <div className="row mb-4">
