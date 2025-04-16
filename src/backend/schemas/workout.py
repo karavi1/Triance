@@ -3,11 +3,11 @@ from uuid import UUID
 from datetime import datetime
 from typing import Optional, List
 from src.backend.schemas.logged_exercise import LoggedExerciseCreateByName, LoggedExerciseOut  
-from src.backend.models.enums import WorkoutType
+from src.backend.models.enums import ExerciseGroup
 
 class WorkoutBase(BaseModel):
     notes: Optional[str] = None
-    workout_type: Optional[WorkoutType] = None
+    workout_type: Optional[ExerciseGroup] = None
 
 class WorkoutCreate(WorkoutBase):
     user_id: UUID
@@ -16,12 +16,12 @@ class WorkoutCreate(WorkoutBase):
 class WorkoutCreateSimple(BaseModel):
     username: str
     notes: Optional[str] = None
-    workout_type: Optional[WorkoutType] = None
+    workout_type: Optional[ExerciseGroup] = None
     logged_exercises: List[LoggedExerciseCreateByName] = Field(..., min_length=1)
 
 class WorkoutUpdate(BaseModel):
     notes: Optional[str] = None
-    workout_type: Optional[WorkoutType] = None
+    workout_type: Optional[ExerciseGroup] = None
 
 class WorkoutOut(WorkoutBase):
     id: UUID

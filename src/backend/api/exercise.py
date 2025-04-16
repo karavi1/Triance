@@ -24,6 +24,10 @@ def get_exercise(exercise_id: UUID, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Exercise not found")
     return exercise
 
+# @router.get("/categorized")
+# def get_exercises_categorized(db: Session = Depends(get_db)):
+#     return get_all_exercises_categorized(db)
+
 @router.post("/")
 def create_new_exercise(exercise: ExerciseCreate, db: Session = Depends(get_db)):
     existing = db.query(Exercise).filter(Exercise.name == exercise.name).first()

@@ -2,7 +2,7 @@ from http.client import HTTPException
 from sqlalchemy.orm import Session
 from uuid import UUID
 from src.backend.models.user import User
-from src.backend.models.enums import WorkoutType
+from src.backend.models.enums import ExerciseGroup
 from src.backend.models.exercise import Exercise
 from src.backend.models.workout import Workout
 from src.backend.models.logged_exercise import LoggedExercise
@@ -75,7 +75,7 @@ def get_last_workout_based_on_username_and_type(username: str, workout_type: str
     return ( 
         db.query(Workout)
         .join(User, Workout.user_id == User.id)
-        .filter(User.username == username, Workout.workout_type == WorkoutType(workout_type))
+        .filter(User.username == username, Workout.workout_type == ExerciseGroup(workout_type))
         .order_by(Workout.created_time.desc())
         .first()
     )

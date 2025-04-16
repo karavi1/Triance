@@ -1,14 +1,16 @@
-from sqlalchemy import JSON, String
+from sqlalchemy import JSON, String, Enum as SQLEnum
 from sqlalchemy.orm import Mapped, mapped_column
 from uuid import UUID, uuid4
 from typing import Optional, List
 from src.backend.models.base import Base
+from src.backend.models.enums import ExerciseGroup
 
 class Exercise(Base):
     __tablename__ = "exercises"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     name: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    category: Mapped[ExerciseGroup] = mapped_column(SQLEnum(ExerciseGroup), nullable=True)
     primary_muscles: Mapped[list[str]] = mapped_column(JSON)
     secondary_muscles: Mapped[Optional[list[str]]] = mapped_column(JSON)
     description: Mapped[Optional[str]] = mapped_column(String(5000), default=None)

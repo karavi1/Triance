@@ -33,6 +33,10 @@ def get_exercise_by_id(db: Session, exercise_id: UUID):
 def get_all_exercises(db: Session):
     return db.query(Exercise).all()
 
+# def get_all_exercises_categorized(db: Session):
+#     exercises = db.query(Exercise).all()
+#     groups = [exfor exercise in exercises]
+
 def update_exercise(db: Session, exercise_id: UUID, updates: ExerciseUpdate):
     exercise = db.query(Exercise).filter(Exercise.id == exercise_id).first()
     if not exercise:

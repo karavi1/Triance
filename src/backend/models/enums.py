@@ -1,6 +1,6 @@
 from enum import Enum
 
-class WorkoutType(str, Enum):
+class ExerciseGroup(str, Enum):
     PUSH = "Push"
     PULL = "Pull"
     QUADS = "Quads"
