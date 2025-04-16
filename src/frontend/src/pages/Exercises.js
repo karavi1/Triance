@@ -13,7 +13,7 @@ export default function Exercises() {
   const [description, setDescription] = useState("");
   const [primaryMuscles, setPrimaryMuscles] = useState("core");
   const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState("Custom");
+  const [selectedCategory, setSelectedCategory] = useState("");
 
   const [exerciseId, setExerciseId] = useState("");
   const [updatedName, setUpdatedName] = useState("");
@@ -46,9 +46,9 @@ export default function Exercises() {
     try {
       const res = await axios.get(BASE_URL + "/categories");
       setCategories(res.data);
+      if (res.data.length > 0) setSelectedCategory(res.data[0]);
     } catch (err) {
       console.error("Failed to load categories", err);
-      setCategories(["Push", "Pull", "Quads", "Hams", "Upper", "Lower", "Full Body", "Custom"]);
     }
   };
 
@@ -63,7 +63,7 @@ export default function Exercises() {
       setName("");
       setDescription("");
       setPrimaryMuscles("core");
-      setSelectedCategory("Custom");
+      setSelectedCategory(categories[0] || "");
       fetchAll();
       fetchGrouped();
     } catch (err) {
@@ -77,13 +77,13 @@ export default function Exercises() {
         name: updatedName,
         description: updatedDescription,
       });
-      setUpdateMessage("✅ Updated successfully!");
+      setUpdateMessage("Updated successfully!");
       setShowModal(false);
       fetchAll();
       fetchGrouped();
     } catch (err) {
       console.error("Update failed", err);
-      setUpdateMessage("❌ Update failed.");
+      setUpdateMessage("Update failed.");
     }
   };
 
@@ -95,7 +95,7 @@ export default function Exercises() {
       fetchGrouped();
     } catch (err) {
       console.error("Delete failed", err);
-      setDeleteMessage("❌ Delete failed.");
+      setDeleteMessage("Delete failed.");
     }
   };
 

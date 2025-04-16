@@ -21,7 +21,7 @@ function Home() {
 
   return (
     <div className="container text-center mt-5">
-      <h1 className="mb-4">🏋️‍♂️ Welcome to Fitness Tracker</h1>
+      <h1 className="mb-4">🏋️‍♂️ Welcome to a Customizable Fitness Tracker!</h1>
 
       {error && <div className="alert alert-danger">{error}</div>}
       {message && <div className="alert alert-primary">{message}</div>}

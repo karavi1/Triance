@@ -15,7 +15,7 @@ export default function Users() {
       setUsers(res.data);
       setMessage("");
     } catch (err) {
-      setMessage("❌ Failed to fetch users");
+      setMessage("Failed to fetch users");
     }
   };
 
@@ -28,18 +28,18 @@ export default function Users() {
       setMessage("");
     } catch (err) {
       setSelectedUser(null);
-      setMessage("⚠️ User not found");
+      setMessage("User not found");
     }
   };
 
   const deleteUser = async (id) => {
     try {
       await axios.delete(`${BASE_URL}/${id}`);
-      setMessage("✅ User deleted successfully");
+      setMessage("User deleted successfully");
       setSelectedUser(null);
       fetchAllUsers();
     } catch (err) {
-      setMessage("❌ Failed to delete user");
+      setMessage("Failed to delete user");
     }
   };
 

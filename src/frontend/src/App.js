@@ -2,9 +2,10 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import Dashboard from './pages/Dashboard';
 import Home from "./pages/Home";
-import Workouts from "./pages/Workouts";
 import Exercises from "./pages/Exercises";
+import Workouts from "./pages/Workouts";
 import Users from "./pages/Users"; // 👈 Import the Users page
 
 function App() {
@@ -29,13 +30,16 @@ function App() {
                 <Link className="nav-link" to="/">Home</Link>
               </li>
               <li className="nav-item">
-                <Link className="nav-link" to="/workouts">Workouts</Link>
+                <Link className="nav-link" to="/users">Users</Link>
               </li>
               <li className="nav-item">
                 <Link className="nav-link" to="/exercises">Exercises</Link>
               </li>
               <li className="nav-item">
-                <Link className="nav-link" to="/users">Users</Link> {/* ✅ Added Users link */}
+                <Link className="nav-link" to="/workouts">Workouts</Link>
+              </li>
+              <li className="nav-item">
+                <Link className="nav-link" to="/dashboard">Dashboard</Link>
               </li>
             </ul>
           </div>
@@ -45,9 +49,10 @@ function App() {
       {/* Page Routes */}
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/workouts" element={<Workouts />} />
+        <Route path="/users" element={<Users />} />
         <Route path="/exercises" element={<Exercises />} />
-        <Route path="/users" element={<Users />} /> {/* ✅ Added Users route */}
+        <Route path="/workouts" element={<Workouts />} />
+        <Route path="/dashboard" element={<Dashboard />} />
       </Routes>
     </Router>
   );

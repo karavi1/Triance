@@ -3,18 +3,17 @@ import axios from "axios";
 
 const BASE_URL = "http://18.191.202.36:8000";
 
-const emptyExercise = {
+const defaultSet = { set_number: 1, reps: 8, weight: 0 };
+const defaultExercise = {
   exercise_name: "",
-  sets: 3,
-  reps: 10,
-  weight: 0,
+  sets: [defaultSet],
 };
 
 export default function CreateWorkout() {
   const [username, setUsername] = useState("");
   const [notes, setNotes] = useState("");
   const [category, setCategory] = useState("");
-  const [loggedExercises, setLoggedExercises] = useState([emptyExercise]);
+  const [loggedExercises, setLoggedExercises] = useState([defaultExercise]);
   const [message, setMessage] = useState("");
 
   const [users, setUsers] = useState([]);
@@ -31,23 +30,44 @@ export default function CreateWorkout() {
       .catch((err) => console.error("Error fetching exercises:", err));
 
     axios.get(`${BASE_URL}/exercises/categories`)
-      .then((res) => setCategories(res.data))
+      .then((res) => {
+        if (Array.isArray(res.data)) setCategories(res.data);
+        else throw new Error("Invalid category format");
+      })
       .catch((err) => {
         console.error("Error fetching categories:", err);
-        setCategories(["Push", "Pull", "Quads", "Hams", "Upper", "Lower", "Full Body", "Custom"]);
+        setCategories([]);
       });
   }, []);
 
   const handleExerciseChange = (index, field, value) => {
     const updated = [...loggedExercises];
-    updated[index][field] = ["sets", "reps", "weight"].includes(field)
-      ? Number(value)
-      : value;
+    updated[index][field] = value;
+    setLoggedExercises(updated);
+  };
+
+  const handleSetChange = (exIndex, setIndex, field, value) => {
+    const updated = [...loggedExercises];
+    updated[exIndex].sets[setIndex][field] = Number(value);
+    setLoggedExercises(updated);
+  };
+
+  const addSet = (exIndex) => {
+    const updated = [...loggedExercises];
+    const nextSetNumber = updated[exIndex].sets.length + 1;
+    updated[exIndex].sets.push({ ...defaultSet, set_number: nextSetNumber });
+    setLoggedExercises(updated);
+  };
+
+  const removeSet = (exIndex, setIndex) => {
+    const updated = [...loggedExercises];
+    updated[exIndex].sets = updated[exIndex].sets.filter((_, i) => i !== setIndex);
+    updated[exIndex].sets.forEach((set, idx) => (set.set_number = idx + 1));
     setLoggedExercises(updated);
   };
 
   const addExercise = () => {
-    setLoggedExercises([...loggedExercises, { ...emptyExercise }]);
+    setLoggedExercises([...loggedExercises, { ...defaultExercise }]);
   };
 
   const removeExercise = (index) => {
@@ -62,29 +82,32 @@ export default function CreateWorkout() {
       username,
       notes,
       category,
-      logged_exercises: loggedExercises,
+      logged_exercises: loggedExercises.map((ex) => ({
+        name: ex.exercise_name,
+        sets: ex.sets,
+      })),
     };
 
     try {
       await axios.post(`${BASE_URL}/workouts/`, payload);
-      setMessage("✅ Workout created successfully!");
+      setMessage("Workout created successfully!");
       setUsername("");
       setNotes("");
       setCategory("");
-      setLoggedExercises([emptyExercise]);
+      setLoggedExercises([defaultExercise]);
     } catch (err) {
       console.error(err);
-      setMessage("❌ Failed to create workout.");
+      setMessage("Failed to create workout.");
     }
   };
 
   return (
     <div className="container mt-5 mb-5">
-      <h2 className="mb-4">Create Workout</h2>
-
-      {message && <div className="alert alert-info">{message}</div>}
-
       <form onSubmit={handleSubmit}>
+        <h2 className="mb-4">Create Workout</h2>
+
+        {message && <div className="alert alert-info">{message}</div>}
+
         {/* User */}
         <div className="mb-3">
           <label className="form-label">User</label>
@@ -133,15 +156,15 @@ export default function CreateWorkout() {
         {/* Exercises */}
         <div className="mb-4">
           <h5>Exercises</h5>
-          {loggedExercises.map((ex, idx) => (
-            <div key={idx} className="card p-3 mb-3">
+          {loggedExercises.map((ex, exIndex) => (
+            <div key={exIndex} className="card p-3 mb-3">
               <div className="mb-3">
                 <label className="form-label">Exercise</label>
                 <select
                   className="form-select"
                   value={ex.exercise_name}
                   onChange={(e) =>
-                    handleExerciseChange(idx, "exercise_name", e.target.value)
+                    handleExerciseChange(exIndex, "exercise_name", e.target.value)
                   }
                   required
                 >
@@ -154,46 +177,68 @@ export default function CreateWorkout() {
                 </select>
               </div>
 
-              <div className="row g-2">
-                <div className="col">
-                  <input
-                    type="number"
-                    className="form-control"
-                    placeholder="Sets"
-                    value={ex.sets}
-                    onChange={(e) =>
-                      handleExerciseChange(idx, "sets", e.target.value)
-                    }
-                  />
-                </div>
-                <div className="col">
-                  <input
-                    type="number"
-                    className="form-control"
-                    placeholder="Reps"
-                    value={ex.reps}
-                    onChange={(e) =>
-                      handleExerciseChange(idx, "reps", e.target.value)
-                    }
-                  />
-                </div>
-                <div className="col">
-                  <input
-                    type="number"
-                    className="form-control"
-                    placeholder="Weight (kg)"
-                    value={ex.weight}
-                    onChange={(e) =>
-                      handleExerciseChange(idx, "weight", e.target.value)
-                    }
-                  />
-                </div>
+              {/* Set Table */}
+              <div className="mb-2">
+                <label className="form-label">Sets</label>
+                <table className="table table-sm">
+                  <thead>
+                    <tr>
+                      <th>Set</th>
+                      <th>Reps</th>
+                      <th>Weight (lb)</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {ex.sets.map((set, setIndex) => (
+                      <tr key={setIndex}>
+                        <td>{set.set_number}</td>
+                        <td>
+                          <input
+                            type="number"
+                            className="form-control"
+                            value={set.reps}
+                            onChange={(e) =>
+                              handleSetChange(exIndex, setIndex, "reps", e.target.value)
+                            }
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            className="form-control"
+                            value={set.weight}
+                            onChange={(e) =>
+                              handleSetChange(exIndex, setIndex, "weight", e.target.value)
+                            }
+                          />
+                        </td>
+                        <td>
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-danger"
+                            onClick={() => removeSet(exIndex, setIndex)}
+                          >
+                            Remove
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <button
+                  type="button"
+                  className="btn btn-sm btn-outline-primary"
+                  onClick={() => addSet(exIndex)}
+                >
+                  + Add Set
+                </button>
               </div>
 
               <button
                 type="button"
                 className="btn btn-sm btn-outline-danger mt-2"
-                onClick={() => removeExercise(idx)}
+                onClick={() => removeExercise(exIndex)}
               >
                 Remove Exercise
               </button>
