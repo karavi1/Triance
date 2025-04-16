@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from uuid import UUID
 
 from src.backend.database.configure import get_db
-from src.backend.schemas.workout import WorkoutCreateSimple, WorkoutOut
+from src.backend.schemas.workout import WorkoutCreateSimple, WorkoutUpdate, WorkoutOut
 from src.backend.crud.workout import (
     create_workout,
     get_workout_by_workout_id,
@@ -12,6 +12,7 @@ from src.backend.crud.workout import (
     get_last_workout,
     get_last_workout_based_on_username_and_type,
     get_all_workouts_by_name,
+    update_workout
 )
 
 router = APIRouter()
@@ -66,6 +67,13 @@ def create_workout_handler(workout: WorkoutCreateSimple, db: Session = Depends(g
     Create a new workout with user and logged exercises.
     """
     return create_workout(db, workout)
+
+@router.patch("/{workout_id}", response_model=WorkoutOut)
+def update_workout_handler(workout_id: UUID, updates: WorkoutUpdate, db: Session = Depends(get_db)):
+    updated = update_workout(db, workout_id, updates)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Workout not found or not updated")
+    return updated
 
 @router.delete("/{workout_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_workout_handler(workout_id: UUID, db: Session = Depends(get_db)):

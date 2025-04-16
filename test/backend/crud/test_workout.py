@@ -28,6 +28,18 @@ def test_update_workout_notes(db, test_user, test_exercise, make_logged_exercise
     updated = crud_workout.update_workout(db, workout.id, WorkoutUpdate(notes="Updated note"))
     assert updated.notes == "Updated note"
 
+def test_update_workout_logged_exercises(db, test_user, test_exercise, make_logged_exercise):
+    workout = crud_workout.create_workout(db, WorkoutCreateSimple(
+        username=test_user.username,
+        logged_exercises=[make_logged_exercise("Deadlift", [(6, 150.0)])]
+    ))
+
+    updated = crud_workout.update_workout(db, workout.id, WorkoutUpdate(logged_exercises=[make_logged_exercise("Deadlift", [(2, 180.0)])]))
+    assert updated.logged_exercises is not None
+    assert len(updated.logged_exercises) == 1
+    assert updated.logged_exercises[0].sets[0].reps == 2
+    assert updated.logged_exercises[0].sets[0].weight == 180  
+
 def test_delete_workout(db, test_user, test_exercise, make_logged_exercise):
     workout = crud_workout.create_workout(db, WorkoutCreateSimple(
         username=test_user.username,

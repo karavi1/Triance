@@ -172,3 +172,48 @@ def test_api_latest_workout_by_type_valid_type_other_user(client, setup_user_and
     res = client.get("/workouts/user/user1/latest/Quads")
     assert res.status_code == 404
     assert res.json()["detail"] == "No workouts of this type found for this user"
+
+def test_api_update_workout(client, setup_user_and_exercise_api):
+    # Setup: create user + exercise
+    setup_user_and_exercise_api(username="patchuser", email="patch@example.com", exercise_name="Deadlift", category="Pull")
+
+    # Create a workout
+    create_resp = client.post("/workouts/", json={
+        "username": "patchuser",
+        "notes": "Initial Workout",
+        "workout_type": "Pull",
+        "logged_exercises": [
+            {
+                "name": "Deadlift",
+                "sets": [{"set_number": 1, "reps": 5, "weight": 100.0}]
+            }
+        ]
+    })
+    assert create_resp.status_code == 201
+    workout_id = create_resp.json()["id"]
+
+    # Update the workout
+    update_payload = {
+        "notes": "Updated Workout Notes",
+        "workout_type": "Push",
+        "logged_exercises": [
+            {
+                "name": "Deadlift",
+                "sets": [
+                    {"set_number": 1, "reps": 3, "weight": 140.0},
+                    {"set_number": 2, "reps": 3, "weight": 145.0}
+                ]
+            }
+        ]
+    }
+
+    patch_resp = client.patch(f"/workouts/{workout_id}", json=update_payload)
+    assert patch_resp.status_code == 200
+    data = patch_resp.json()
+
+    # Assertions
+    assert data["notes"] == "Updated Workout Notes"
+    assert data["workout_type"] == "Push"
+    assert len(data["logged_exercises"]) == 1
+    assert len(data["logged_exercises"][0]["sets"]) == 2
+    assert data["logged_exercises"][0]["sets"][0]["weight"] == 140.0

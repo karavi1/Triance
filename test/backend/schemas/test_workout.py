@@ -97,6 +97,25 @@ def test_workout_update_only_notes():
     update = WorkoutUpdate(notes="Updated notes")
     assert update.notes == "Updated notes"
 
+def test_workout_update_logged_exercises():
+    update = WorkoutUpdate(logged_exercises=[LoggedExerciseCreateByName(
+                name="Incline Press",
+                sets=[
+                    LoggedExerciseSetCreate(set_number=1, reps=8, weight=50.0),
+                    LoggedExerciseSetCreate(set_number=2, reps=6, weight=55.0)
+                ]), LoggedExerciseCreateByName(
+                name="Squat",
+                sets=[
+                    LoggedExerciseSetCreate(set_number=1, reps=8, weight=150.0),
+                    LoggedExerciseSetCreate(set_number=2, reps=6, weight=155.0)
+                ]
+        
+    )])
+    assert len(update.logged_exercises) == 2
+    assert update.logged_exercises[0].sets[0].reps == 8
+    assert update.logged_exercises[1].sets[1].weight == 155
+    
+
 # ---------- WorkoutOut ----------
 
 def test_valid_workout_out():

@@ -22,6 +22,11 @@ class WorkoutCreateSimple(BaseModel):
 class WorkoutUpdate(BaseModel):
     notes: Optional[str] = None
     workout_type: Optional[ExerciseGroup] = None
+    logged_exercises: Optional[List[LoggedExerciseCreateByName]] = None
+
+    model_config = {
+        "use_enum_values": True
+    }
 
 class WorkoutOut(WorkoutBase):
     id: UUID

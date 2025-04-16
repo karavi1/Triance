@@ -1,11 +1,12 @@
 from http.client import HTTPException
 from sqlalchemy.orm import Session
-from uuid import UUID
+from uuid import UUID, uuid4
 from src.backend.models.user import User
 from src.backend.models.enums import ExerciseGroup
 from src.backend.models.exercise import Exercise
 from src.backend.models.workout import Workout
 from src.backend.models.logged_exercise import LoggedExercise
+from src.backend.schemas.logged_exercise import LoggedExerciseUpdate
 from src.backend.schemas.workout import WorkoutCreateSimple, WorkoutUpdate
 from src.backend.models.logged_exercise_set import LoggedExerciseSet
 
@@ -67,7 +68,7 @@ def get_all_workouts_by_name(username: str, db: Session):
         db.query(Workout)
         .join(User, Workout.user_id == User.id)
         .filter(User.username == username)
-        .order_by(Workout.created_time.desc()) # Export this and the one to a different method?
+        .order_by(Workout.created_time.desc())
         .all()
     )
 
@@ -87,8 +88,31 @@ def update_workout(db: Session, workout_id: UUID, updates: WorkoutUpdate):
     workout = db.query(Workout).filter(Workout.id == workout_id).first()
     if not workout:
         return None
-    for field, value in updates.model_dump(exclude_unset=True).items():
-        setattr(workout, field, value)
+    payload = updates.model_dump(exclude_unset=True)
+    if "logged_exercises" in payload and payload["logged_exercises"]:
+        workout.logged_exercises.clear()
+        for le_data in payload["logged_exercises"]:
+            exercise = db.query(Exercise).filter(Exercise.name == le_data["name"]).first()
+            if not exercise:
+                raise ValueError(f"Exercise '{le_data['name']}' not found.")
+            le = LoggedExercise(
+                id=uuid4(),
+                workout_id=workout.id,
+                exercise_id=exercise.id
+            )
+            db.add(le)
+            for set_data in le_data["sets"]:
+                le_set = LoggedExerciseSet(
+                    id = uuid4(),
+                    logged_exercise_id = le.id,
+                    set_number = set_data["set_number"],
+                    reps=set_data["reps"],
+                    weight=set_data["weight"]
+                )
+                db.add(le_set)
+    for field, value in payload.items():
+        if field != "logged_exercises":
+            setattr(workout, field, value)
     db.commit()
     db.refresh(workout)
     return workout
