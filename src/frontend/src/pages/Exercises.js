@@ -11,7 +11,7 @@ export default function Exercises() {
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [primaryMuscles, setPrimaryMuscles] = useState("core");
+  const [primaryMuscles, setPrimaryMuscles] = useState("");
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
 
@@ -158,33 +158,6 @@ export default function Exercises() {
         </button>
       </div>
 
-      {/* Delete */}
-      <div className="card p-4 mb-4">
-        <h5 className="mb-3">Delete Exercise</h5>
-        <select
-          className="form-select mb-3"
-          value={exerciseId}
-          onChange={(e) => setExerciseId(e.target.value)}
-        >
-          <option value="">Select an exercise</option>
-          {exercises.map((ex) => (
-            <option key={ex.id} value={ex.id}>
-              {ex.name}
-            </option>
-          ))}
-        </select>
-        <button
-          className="btn btn-danger"
-          onClick={deleteExercise}
-          disabled={!exerciseId}
-        >
-          Delete Selected Exercise
-        </button>
-        {deleteMessage && (
-          <div className="mt-2 alert alert-warning">{deleteMessage}</div>
-        )}
-      </div>
-
       {/* Update */}
       <div className="card p-4 mb-4">
         <h5 className="mb-3">Update Exercise</h5>
@@ -209,6 +182,33 @@ export default function Exercises() {
         </button>
         {updateMessage && (
           <div className="mt-2 alert alert-info">{updateMessage}</div>
+        )}
+      </div>
+
+      {/* Delete */}
+      <div className="card p-4 mb-4">
+        <h5 className="mb-3">Delete Exercise</h5>
+        <select
+          className="form-select mb-3"
+          value={exerciseId}
+          onChange={(e) => setExerciseId(e.target.value)}
+        >
+          <option value="">Select an exercise</option>
+          {exercises.map((ex) => (
+            <option key={ex.id} value={ex.id}>
+              {ex.name}
+            </option>
+          ))}
+        </select>
+        <button
+          className="btn btn-danger"
+          onClick={deleteExercise}
+          disabled={!exerciseId}
+        >
+          Delete Selected Exercise
+        </button>
+        {deleteMessage && (
+          <div className="mt-2 alert alert-warning">{deleteMessage}</div>
         )}
       </div>
 
@@ -245,19 +245,18 @@ export default function Exercises() {
         </Modal.Footer>
       </Modal>
 
-      {/* Toggle */}
-      <div className="mb-3">
-        <button
-          className="btn btn-outline-secondary"
-          onClick={() => setShowGrouped(!showGrouped)}
-        >
-          {showGrouped ? "Show Flat List" : "Show Grouped by Category"}
-        </button>
-      </div>
-
       {/* Exercise List */}
       <div className="card p-4">
         <h5 className="mb-3">{showGrouped ? "Exercises by Category" : "All Exercises"}</h5>
+        {/* Toggle */}
+        <div className="mb-3">
+          <button
+            className="btn btn-outline-secondary"
+            onClick={() => setShowGrouped(!showGrouped)}
+          >
+            {showGrouped ? "Show Flat List" : "Show Grouped by Category"}
+          </button>
+        </div>
         {showGrouped ? (
           Object.entries(groupedExercises).map(([category, group]) => (
             <div key={category} className="mb-4">
