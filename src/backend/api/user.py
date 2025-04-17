@@ -1,14 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from uuid import UUID
-
 from src.backend.database.configure import get_db
-from src.backend.schemas.user import UserCreate, UserOut
+from src.backend.schemas.user import UserCreate, UserUpdate, UserOut
 from src.backend.crud.user import (
     create_user,
     get_user_by_id,
     get_all_users,
     delete_user,
+    update_user
 )
 
 router = APIRouter()
@@ -46,3 +46,13 @@ def delete_user_handler(user_id: UUID, db: Session = Depends(get_db)):
     if not success:
         raise HTTPException(status_code=404, detail="User not found")
     return success
+
+@router.patch("/{user_id}", response_model=UserOut)
+def update_user_handler(user_id: UUID, updates: UserUpdate, db: Session = Depends(get_db)):
+    """
+    Update an existing user.
+    """
+    updated = update_user(db, user_id, updates)
+    if not updated:
+        raise HTTPException(status_code=404, detail="User not found or not updated")
+    return updated

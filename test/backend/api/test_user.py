@@ -48,3 +48,15 @@ def test_delete_user(client, create_user_api):
     get_response = client.get(f"/users/{user_id}")
     assert get_response.status_code == 404
     assert get_response.json()["detail"] == "User not found"
+
+def test_update_user(client, create_user_api):
+    user = create_user_api(username="usertoupdate", email="usertoupdate@example.com")
+    user_id = user["id"]
+
+    patch_resp = client.patch(f"/users/{user_id}", json={
+        "username": "updated username",
+        "email": "updatedemail@example.com"
+    })
+    assert patch_resp.status_code == 200
+    assert patch_resp.json()["username"] == "updated username"
+    assert patch_resp.json()["email"] == "updatedemail@example.com"

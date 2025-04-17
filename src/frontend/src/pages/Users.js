@@ -5,30 +5,46 @@ const BASE_URL = "http://18.191.202.36:8000/users";
 
 export default function Users() {
   const [users, setUsers] = useState([]);
-  const [userId, setUserId] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
   const [message, setMessage] = useState("");
 
-  const fetchAllUsers = async () => {
+  // Create New User States
+  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
+
+  // Update Existing User States
+  const [updatedEmail, setUpdatedEmail] = useState("");
+  const [updatedUsername, setUpdatedUsername] = useState("");
+
+  const createNewUser = async () => {
     try {
-      const res = await axios.get(BASE_URL);
-      setUsers(res.data);
-      setMessage("");
+      await axios.post(BASE_URL, { email, username });
+      setEmail("");
+      setUsername("");
+      setMessage("User created successfully");
+      fetchAllUsers();
     } catch (err) {
-      setMessage("Failed to fetch users");
+      setMessage("Failed to create new user");
     }
   };
 
-  const fetchUserById = async () => {
-    if (!userId) return;
+  const updateExistingUser = async () => {
+    if (!selectedUser) {
+      setMessage("No user selected to update");
+      return;
+    }
 
     try {
-      const res = await axios.get(`${BASE_URL}/${userId}`);
-      setSelectedUser(res.data);
-      setMessage("");
+      await axios.patch(`${BASE_URL}/${selectedUser.id}`, {
+        email: updatedEmail,
+        username: updatedUsername
+      });
+      setUpdatedEmail("");
+      setUpdatedUsername("");
+      setMessage("User updated successfully");
+      fetchAllUsers();
     } catch (err) {
-      setSelectedUser(null);
-      setMessage("User not found");
+      setMessage("Failed to update user");
     }
   };
 
@@ -43,6 +59,26 @@ export default function Users() {
     }
   };
 
+  const fetchAllUsers = async () => {
+    try {
+      const res = await axios.get(BASE_URL);
+      setUsers(res.data);
+    } catch (err) {
+      setMessage("Failed to fetch users");
+    }
+  };
+
+  // Prefill form fields when selected user changes
+  useEffect(() => {
+    if (selectedUser) {
+      setUpdatedUsername(selectedUser.username);
+      setUpdatedEmail(selectedUser.email);
+    } else {
+      setUpdatedUsername("");
+      setUpdatedEmail("");
+    }
+  }, [selectedUser]);
+
   useEffect(() => {
     fetchAllUsers();
   }, []);
@@ -51,63 +87,91 @@ export default function Users() {
     <div className="container mt-5 mb-5">
       <h2 className="mb-4">User Manager</h2>
 
-      {message && <div className="alert alert-info">{message}</div>}
+      {/* Message Alert */}
+      {message && (
+        <div className="alert alert-info alert-dismissible fade show" role="alert">
+          {message}
+          <button
+            type="button"
+            className="btn-close"
+            aria-label="Close"
+            onClick={() => setMessage("")}
+          ></button>
+        </div>
+      )}
 
-      {/* Search by ID */}
+      {/* Create New User */}
       <div className="card p-3 mb-4">
-        <h5>Get User by ID</h5>
+        <h5>Create New User</h5>
         <div className="input-group">
           <input
             className="form-control"
-            placeholder="User ID"
-            value={userId}
-            onChange={(e) => setUserId(e.target.value)}
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
           />
-          <button className="btn btn-primary" onClick={fetchUserById}>
-            Fetch
+          <input
+            className="form-control"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <button className="btn btn-primary" onClick={createNewUser}>
+            Create
           </button>
+        </div>
+      </div>
+
+      {/* Update Existing User via Dropdown with option to Delete User too */}
+      <div className="card p-3 mb-4">
+        <h5>Update Existing User</h5>
+
+        <div className="mb-3">
+          <select
+            className="form-select"
+            value={selectedUser?.id || ""}
+            onChange={(e) => {
+              const user = users.find((u) => u.id === e.target.value);
+              setSelectedUser(user || null);
+            }}
+          >
+            <option value="">Select a user to update</option>
+            {users.map((user) => (
+              <option key={user.id} value={user.id}>
+                {user.username} — {user.email}
+              </option>
+            ))}
+          </select>
         </div>
 
         {selectedUser && (
-          <div className="mt-3 border p-3 rounded bg-light">
-            <p><strong>Username:</strong> {selectedUser.username}</p>
-            <p><strong>Email:</strong> {selectedUser.email}</p>
-            <p><strong>ID:</strong> {selectedUser.id}</p>
-            <button
-              className="btn btn-sm btn-danger"
-              onClick={() => deleteUser(selectedUser.id)}
-            >
-              Delete This User
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* All Users List */}
-      <div className="card p-3">
-        <h5>All Users</h5>
-        {users.length === 0 ? (
-          <p className="text-muted">No users found.</p>
-        ) : (
-          <ul className="list-group">
-            {users.map((user) => (
-              <li
-                key={user.id}
-                className="list-group-item d-flex justify-content-between align-items-center"
+          <>
+            <div className="input-group mb-2">
+              <input
+                className="form-control"
+                placeholder="Username"
+                value={updatedUsername}
+                onChange={(e) => setUpdatedUsername(e.target.value)}
+              />
+              <input
+                className="form-control"
+                placeholder="Email"
+                value={updatedEmail}
+                onChange={(e) => setUpdatedEmail(e.target.value)}
+              />
+            </div>
+            <div className="d-flex gap-2">
+              <button className="btn btn-primary" onClick={updateExistingUser}>
+                Update
+              </button>
+              <button
+                className="btn btn-danger"
+                onClick={() => deleteUser(selectedUser.id)}
               >
-                <div>
-                  <strong>{user.username}</strong> — {user.email}
-                  <div className="text-muted small">{user.id}</div>
-                </div>
-                <button
-                  className="btn btn-sm btn-danger"
-                  onClick={() => deleteUser(user.id)}
-                >
-                  Delete
-                </button>
-              </li>
-            ))}
-          </ul>
+                Delete
+              </button>
+            </div>
+          </>
         )}
       </div>
     </div>
