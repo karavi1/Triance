@@ -178,7 +178,7 @@ export default function Exercises() {
           onClick={handleOpenModal}
           disabled={!exerciseId}
         >
-          Edit Selected Exercise
+          Update Selected Exercise
         </button>
         {updateMessage && (
           <div className="mt-2 alert alert-info">{updateMessage}</div>

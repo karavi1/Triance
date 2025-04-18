@@ -10,35 +10,35 @@ const defaultExercise = {
 };
 
 export default function CreateWorkout() {
-  const [username, setUsername] = useState("");
-  const [notes, setNotes] = useState("");
-  const [category, setCategory] = useState("");
-  const [loggedExercises, setLoggedExercises] = useState([defaultExercise]);
-  const [message, setMessage] = useState("");
+    const [username, setUsername] = useState("");
+    const [notes, setNotes] = useState("");
+    const [category, setCategory] = useState("");
+    const [loggedExercises, setLoggedExercises] = useState([defaultExercise]);
+    const [message, setMessage] = useState("");
 
-  const [users, setUsers] = useState([]);
-  const [exercises, setExercises] = useState([]);
-  const [categories, setCategories] = useState([]);
+    const [users, setUsers] = useState([]);
+    const [exercises, setExercises] = useState([]);
+    const [categories, setCategories] = useState([]);
 
-  useEffect(() => {
-    axios.get(`${BASE_URL}/users`)
-      .then((res) => setUsers(res.data))
-      .catch((err) => console.error("Error fetching users:", err));
+    useEffect(() => {
+      axios.get(`${BASE_URL}/users`)
+        .then((res) => setUsers(res.data))
+        .catch((err) => console.error("Error fetching users:", err));
 
-    axios.get(`${BASE_URL}/exercises`)
-      .then((res) => setExercises(res.data))
-      .catch((err) => console.error("Error fetching exercises:", err));
+      axios.get(`${BASE_URL}/exercises`)
+        .then((res) => setExercises(res.data))
+        .catch((err) => console.error("Error fetching exercises:", err));
 
-    axios.get(`${BASE_URL}/exercises/categories`)
-      .then((res) => {
-        if (Array.isArray(res.data)) setCategories(res.data);
-        else throw new Error("Invalid category format");
-      })
-      .catch((err) => {
-        console.error("Error fetching categories:", err);
-        setCategories([]);
-      });
-  }, []);
+      axios.get(`${BASE_URL}/exercises/categories`)
+        .then((res) => {
+          if (Array.isArray(res.data)) setCategories(res.data);
+          else throw new Error("Invalid category format");
+        })
+        .catch((err) => {
+          console.error("Error fetching categories:", err);
+          setCategories([]);
+        });
+    }, []);
 
   const handleExerciseChange = (index, field, value) => {
     const updated = [...loggedExercises];
@@ -104,10 +104,7 @@ export default function CreateWorkout() {
   return (
     <div className="container mt-5 mb-5">
       <form onSubmit={handleSubmit}>
-        <h2 className="mb-4">Create Workout</h2>
-
         {message && <div className="alert alert-info">{message}</div>}
-
         {/* User */}
         <div className="mb-3">
           <label className="form-label">User</label>
@@ -250,7 +247,7 @@ export default function CreateWorkout() {
             className="btn btn-outline-primary"
             onClick={addExercise}
           >
-            + Add Another Exercise
+            + Add Exercise
           </button>
         </div>
 

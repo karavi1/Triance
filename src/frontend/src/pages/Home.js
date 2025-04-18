@@ -21,22 +21,20 @@ function Home() {
 
   return (
     <div className="container text-center mt-5">
-      <h1 className="mb-4">🏋️‍♂️ Welcome to a Customizable Fitness Tracker!</h1>
-
+      <h1 className="mb-4">🏋️‍♂️ {message}</h1>
       {error && <div className="alert alert-danger">{error}</div>}
-      {message && <div className="alert alert-primary">{message}</div>}
 
       <p className="text-muted">Track your workouts, visualize your progress, and stay consistent.</p>
 
       <div className="mt-4">
-        <a href="/workouts" className="btn btn-success me-2">
-          View Workouts
+        <a href="/users" className="btn btn-success me-2">
+          Manage Users
         </a>
-        <a href="/workouts/create" className="btn btn-outline-primary me-2">
-          Log a Workout
-        </a>
-        <a href="/exercises" className="btn btn-secondary">
+        <a href="/exercises" className="btn btn-secondary me-2">
           Manage Exercises
+        </a>
+        <a href="/workouts" className="btn btn-primary">
+          Manage Workouts
         </a>
       </div>
     </div>
