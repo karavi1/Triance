@@ -3,17 +3,21 @@ import axios from "axios";
 
 const BASE_URL = "http://18.191.202.36:8000";
 
-const defaultSet = { set_number: 1, reps: 8, weight: 0 };
-const defaultExercise = {
+const createDefaultSet = (set_number = 1) => ({
+  set_number,
+  reps: 8,
+  weight: 0
+});
+const createDefaultExercise = () => ({
   exercise_name: "",
-  sets: [defaultSet],
-};
+  sets: [createDefaultSet()],
+});
 
 export default function CreateWorkout() {
     const [username, setUsername] = useState("");
     const [notes, setNotes] = useState("");
     const [category, setCategory] = useState("");
-    const [loggedExercises, setLoggedExercises] = useState([defaultExercise]);
+    const [loggedExercises, setLoggedExercises] = useState([createDefaultExercise()]);
     const [message, setMessage] = useState("");
 
     const [users, setUsers] = useState([]);
@@ -55,7 +59,7 @@ export default function CreateWorkout() {
   const addSet = (exIndex) => {
     const updated = [...loggedExercises];
     const nextSetNumber = updated[exIndex].sets.length + 1;
-    updated[exIndex].sets.push({ ...defaultSet, set_number: nextSetNumber });
+    updated[exIndex].sets.push(createDefaultSet(nextSetNumber));
     setLoggedExercises(updated);
   };
 
@@ -67,7 +71,7 @@ export default function CreateWorkout() {
   };
 
   const addExercise = () => {
-    setLoggedExercises([...loggedExercises, { ...defaultExercise }]);
+    setLoggedExercises([...loggedExercises, createDefaultExercise()]);
   };
 
   const removeExercise = (index) => {
@@ -94,7 +98,7 @@ export default function CreateWorkout() {
       setUsername("");
       setNotes("");
       setCategory("");
-      setLoggedExercises([defaultExercise]);
+      setLoggedExercises([createDefaultExercise()]);
     } catch (err) {
       console.error(err);
       setMessage("Failed to create workout.");
