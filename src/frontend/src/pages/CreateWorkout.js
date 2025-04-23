@@ -52,9 +52,10 @@ export default function CreateWorkout() {
 
   const handleSetChange = (exIndex, setIndex, field, value) => {
     const updated = [...loggedExercises];
-    updated[exIndex].sets[setIndex][field] = Number(value);
+    updated[exIndex].sets[setIndex][field] = value === "" ? "" : Number(value);
     setLoggedExercises(updated);
   };
+  
 
   const addSet = (exIndex) => {
     const updated = [...loggedExercises];

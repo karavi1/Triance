@@ -194,11 +194,16 @@ export default function Exercises() {
           onChange={(e) => setExerciseId(e.target.value)}
         >
           <option value="">Select an exercise</option>
-          {exercises.map((ex) => (
-            <option key={ex.id} value={ex.id}>
-              {ex.name}
-            </option>
+          {Object.entries(groupedExercises).map(([category, exerciseList]) => (
+              <optgroup key={category} label={category}>
+                {exerciseList.map((exercise) => (
+                  <option key={exercise.id} value={exercise.name}>
+                    {exercise.name}
+                  </option>
+                ))}
+              </optgroup>
           ))}
+
         </select>
         <button
           className="btn btn-danger"
