@@ -121,7 +121,6 @@ export default function Exercises() {
       {/* Create */}
       <div className="card p-4 mb-4">
         <h5 className="mb-3">Create New Exercise</h5>
-
         <input
           className="form-control mb-2"
           placeholder="Exercise Name"
@@ -140,19 +139,15 @@ export default function Exercises() {
           value={primaryMuscles}
           onChange={(e) => setPrimaryMuscles(e.target.value)}
         />
-
         <select
           className="form-select mb-3"
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value)}
         >
           {categories.map((cat) => (
-            <option key={cat} value={cat}>
-              {cat}
-            </option>
+            <option key={cat} value={cat}>{cat}</option>
           ))}
         </select>
-
         <button className="btn btn-primary" onClick={createExercise}>
           Create
         </button>
@@ -167,10 +162,14 @@ export default function Exercises() {
           onChange={(e) => setExerciseId(e.target.value)}
         >
           <option value="">Select an exercise</option>
-          {exercises.map((ex) => (
-            <option key={ex.id} value={ex.id}>
-              {ex.name}
-            </option>
+          {Object.entries(groupedExercises).map(([category, exerciseList]) => (
+            <optgroup key={category} label={category}>
+              {exerciseList.map((exercise) => (
+                <option key={exercise.id} value={exercise.id}>
+                  {exercise.name}
+                </option>
+              ))}
+            </optgroup>
           ))}
         </select>
         <button
@@ -195,15 +194,14 @@ export default function Exercises() {
         >
           <option value="">Select an exercise</option>
           {Object.entries(groupedExercises).map(([category, exerciseList]) => (
-              <optgroup key={category} label={category}>
-                {exerciseList.map((exercise) => (
-                  <option key={exercise.id} value={exercise.name}>
-                    {exercise.name}
-                  </option>
-                ))}
-              </optgroup>
+            <optgroup key={category} label={category}>
+              {exerciseList.map((exercise) => (
+                <option key={exercise.id} value={exercise.name}>
+                  {exercise.name}
+                </option>
+              ))}
+            </optgroup>
           ))}
-
         </select>
         <button
           className="btn btn-danger"
@@ -253,7 +251,6 @@ export default function Exercises() {
       {/* Exercise List */}
       <div className="card p-4">
         <h5 className="mb-3">{showGrouped ? "Exercises by Category" : "All Exercises"}</h5>
-        {/* Toggle */}
         <div className="mb-3">
           <button
             className="btn btn-outline-secondary"

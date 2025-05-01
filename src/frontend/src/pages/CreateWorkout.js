@@ -6,7 +6,7 @@ const BASE_URL = "http://18.191.202.36:8000";
 const createDefaultSet = (set_number = 1) => ({
   set_number,
   reps: 8,
-  weight: 0
+  weight: 0,
 });
 const createDefaultExercise = () => ({
   exercise_name: "",
@@ -21,7 +21,7 @@ export default function CreateWorkout() {
   const [message, setMessage] = useState("");
 
   const [users, setUsers] = useState([]);
-  const [exercises, setExercises] = useState([]);
+  const [groupedExercises, setGroupedExercises] = useState({});
   const [categories, setCategories] = useState([]);
 
   useEffect(() => {
@@ -29,8 +29,8 @@ export default function CreateWorkout() {
       .then((res) => setUsers(res.data))
       .catch((err) => console.error("Error fetching users:", err));
 
-    axios.get(`${BASE_URL}/exercises`)
-      .then((res) => setExercises(res.data))
+    axios.get(`${BASE_URL}/exercises/categorized`)
+      .then((res) => setGroupedExercises(res.data))
       .catch((err) => console.error("Error fetching exercises:", err));
 
     axios.get(`${BASE_URL}/exercises/categories`)
@@ -165,16 +165,18 @@ export default function CreateWorkout() {
                 <select
                   className="form-select"
                   value={ex.exercise_name}
-                  onChange={(e) =>
-                    handleExerciseChange(exIndex, "exercise_name", e.target.value)
-                  }
+                  onChange={(e) => handleExerciseChange(exIndex, "exercise_name", e.target.value)}
                   required
                 >
                   <option value="">Select an exercise</option>
-                  {exercises.map((exOpt) => (
-                    <option key={exOpt.id} value={exOpt.name}>
-                      {exOpt.name}
-                    </option>
+                  {Object.entries(groupedExercises).map(([category, exerciseList]) => (
+                    <optgroup key={category} label={category}>
+                      {exerciseList.map((exercise) => (
+                        <option key={exercise.id} value={exercise.name}>
+                          {exercise.name}
+                        </option>
+                      ))}
+                    </optgroup>
                   ))}
                 </select>
               </div>
@@ -200,9 +202,7 @@ export default function CreateWorkout() {
                             type="number"
                             className="form-control"
                             value={set.reps}
-                            onChange={(e) =>
-                              handleSetChange(exIndex, setIndex, "reps", e.target.value)
-                            }
+                            onChange={(e) => handleSetChange(exIndex, setIndex, "reps", e.target.value)}
                           />
                         </td>
                         <td>
@@ -210,9 +210,7 @@ export default function CreateWorkout() {
                             type="number"
                             className="form-control"
                             value={set.weight}
-                            onChange={(e) =>
-                              handleSetChange(exIndex, setIndex, "weight", e.target.value)
-                            }
+                            onChange={(e) => handleSetChange(exIndex, setIndex, "weight", e.target.value)}
                           />
                         </td>
                         <td>

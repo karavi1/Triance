@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
-const BASE_URL = "http://18.191.202.36:8000/workouts";
+const BASE_URL = "http://18.191.202.36:8000";
+
+const createDefaultSet = (set_number = 1) => ({ set_number, reps: 8, weight: 0 });
+
+const createDefaultExercise = (exerciseName = "") => ({
+  exercise: { name: exerciseName },
+  sets: [createDefaultSet()],
+});
 
 export default function UpdateWorkout() {
   const [workouts, setWorkouts] = useState([]);
@@ -11,31 +18,67 @@ export default function UpdateWorkout() {
   const [message, setMessage] = useState("");
   const [username, setUsername] = useState("");
   const [categories, setCategories] = useState([]);
+  const [groupedExercises, setGroupedExercises] = useState({});
+
+  useEffect(() => {
+    axios.get(`${BASE_URL}/exercises/categories`).then((res) => setCategories(res.data));
+    axios.get(`${BASE_URL}/exercises/categorized`).then((res) => setGroupedExercises(res.data));
+  }, []);
 
   const fetchWorkoutsByUser = async () => {
     try {
-      const res = await axios.get(`${BASE_URL}/user/${username}`);
+      const res = await axios.get(`${BASE_URL}/workouts/user/${username}`);
       setWorkouts(res.data);
     } catch (err) {
-      console.error("Failed to fetch workouts for user: " + username, err);
-    }
-  };
-
-  const fetchCategories = async () => {
-    try {
-      const res = await axios.get("http://18.191.202.36:8000/exercises/categories");
-      setCategories(res.data);
-    } catch (err) {
-      console.error("Failed to load categories", err);
+      console.error("Failed to fetch workouts", err);
     }
   };
 
   const handleSelectWorkout = (id) => {
     const workout = workouts.find((w) => w.id === id);
     if (!workout) return;
-    setSelectedWorkout(workout);
+    setSelectedWorkout(JSON.parse(JSON.stringify(workout)));
     setNotes(workout.notes || "");
     setWorkoutType(workout.workout_type || "");
+  };
+
+  const updateExerciseName = (exIndex, name) => {
+    const updated = { ...selectedWorkout };
+    updated.logged_exercises[exIndex].exercise.name = name;
+    setSelectedWorkout(updated);
+  };
+
+  const updateSetValue = (exIndex, setIndex, field, value) => {
+    const updatedWorkout = { ...selectedWorkout };
+    updatedWorkout.logged_exercises[exIndex].sets[setIndex][field] = value;
+    setSelectedWorkout(updatedWorkout);
+  };
+
+  const addSet = (exIndex) => {
+    const updated = { ...selectedWorkout };
+    const sets = updated.logged_exercises[exIndex].sets;
+    const nextSetNumber = sets.length + 1;
+    sets.push(createDefaultSet(nextSetNumber));
+    setSelectedWorkout(updated);
+  };
+
+  const removeSet = (exIndex, setIndex) => {
+    const updated = { ...selectedWorkout };
+    updated.logged_exercises[exIndex].sets = updated.logged_exercises[exIndex].sets.filter((_, i) => i !== setIndex);
+    updated.logged_exercises[exIndex].sets.forEach((s, i) => s.set_number = i + 1);
+    setSelectedWorkout(updated);
+  };
+
+  const addExercise = () => {
+    const updated = { ...selectedWorkout };
+    updated.logged_exercises.push(createDefaultExercise());
+    setSelectedWorkout(updated);
+  };
+
+  const removeExercise = (exIndex) => {
+    const updated = { ...selectedWorkout };
+    updated.logged_exercises = updated.logged_exercises.filter((_, i) => i !== exIndex);
+    setSelectedWorkout(updated);
   };
 
   const handleUpdate = async () => {
@@ -55,35 +98,30 @@ export default function UpdateWorkout() {
     };
 
     try {
-      await axios.patch(`${BASE_URL}/${selectedWorkout.id}`, payload);
+      await axios.patch(`${BASE_URL}/workouts/${selectedWorkout.id}`, payload);
       setMessage("Workout updated successfully!");
       await fetchWorkoutsByUser();
     } catch (err) {
       console.error("Update failed", err);
-      if (err.response?.data) {
-        console.error("Backend error:", err.response.data);
-        setMessage("Update failed: " + JSON.stringify(err.response.data));
-      } else {
-        setMessage("Update failed.");
-      }
+      setMessage("Update failed: " + (err.response?.data?.detail || "Unknown error"));
     }
   };
 
-  const updateSetValue = (exIndex, setIndex, field, value) => {
-    const updatedWorkout = { ...selectedWorkout };
-    const updatedSet = {
-      ...updatedWorkout.logged_exercises[exIndex].sets[setIndex],
-    };
+  const handleDeleteWorkout = async () => {
+    if (!selectedWorkout) return;
 
-    updatedSet[field] = value;
-
-    updatedWorkout.logged_exercises[exIndex].sets[setIndex] = updatedSet;
-    setSelectedWorkout(updatedWorkout);
+    try {
+      await axios.delete(`${BASE_URL}/workouts/${selectedWorkout.id}`);
+      setMessage("Workout deleted successfully.");
+      setSelectedWorkout(null);
+      setNotes("");
+      setWorkoutType("");
+      await fetchWorkoutsByUser();
+    } catch (err) {
+      console.error("Delete failed", err);
+      setMessage("Failed to delete workout.");
+    }
   };
-
-  useEffect(() => {
-    fetchCategories();
-  }, []);
 
   return (
     <div className="card p-4">
@@ -141,65 +179,89 @@ export default function UpdateWorkout() {
             </select>
           </div>
 
-          {selectedWorkout.logged_exercises.map((ex, exIndex) => {
-            const sortedSets = [...ex.sets].sort(
-              (a, b) => a.set_number - b.set_number
-            );
-
-            return (
-              <div key={exIndex} className="border p-3 mb-4 rounded">
-                <h6 className="mb-3">{ex.exercise.name}</h6>
-
-                <div className="row fw-bold mb-2">
-                  <div className="col-2">Set #</div>
-                  <div className="col-5">Reps</div>
-                  <div className="col-5">Weight (lb)</div>
-                </div>
-
-                {sortedSets.map((set, setIndex) => (
-                  <div key={setIndex} className="row mb-2 align-items-center">
-                    <div className="col-2">
-                      <span>{set.set_number}</span>
-                    </div>
-                    <div className="col-5">
-                      <input
-                        type="number"
-                        className="form-control"
-                        value={set.reps}
-                        onChange={(e) =>
-                          updateSetValue(
-                            exIndex,
-                            set.set_number - 1,
-                            "reps",
-                            parseInt(e.target.value)
-                          )
-                        }
-                      />
-                    </div>
-                    <div className="col-5">
-                      <input
-                        type="number"
-                        className="form-control"
-                        value={set.weight}
-                        onChange={(e) =>
-                          updateSetValue(
-                            exIndex,
-                            set.set_number - 1,
-                            "weight",
-                            parseFloat(e.target.value)
-                          )
-                        }
-                      />
-                    </div>
-                  </div>
-                ))}
+          {selectedWorkout.logged_exercises.map((ex, exIndex) => (
+            <div key={exIndex} className="border p-3 mb-4 rounded">
+              <div className="d-flex justify-content-between align-items-center mb-2">
+                <h6 className="mb-0">Exercise {exIndex + 1}</h6>
+                <button
+                  className="btn btn-sm btn-outline-danger"
+                  onClick={() => removeExercise(exIndex)}
+                >
+                  Remove Exercise
+                </button>
               </div>
-            );
-          })}
+              <select
+                className="form-select mb-3"
+                value={ex.exercise.name}
+                onChange={(e) => updateExerciseName(exIndex, e.target.value)}
+              >
+                <option value="">Select an exercise</option>
+                {Object.entries(groupedExercises).map(([category, exercises]) => (
+                  <optgroup key={category} label={category}>
+                    {exercises.map((exercise) => (
+                      <option key={exercise.id} value={exercise.name}>
+                        {exercise.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
 
-          <button className="btn btn-primary mt-2" onClick={handleUpdate}>
-            Submit Update
+              <div className="row fw-bold mb-2">
+                <div className="col-2">Set #</div>
+                <div className="col-5">Reps</div>
+                <div className="col-5">Weight (lb)</div>
+              </div>
+
+              {ex.sets.map((set, setIndex) => (
+                <div key={setIndex} className="row mb-2 align-items-center">
+                  <div className="col-2">{set.set_number}</div>
+                  <div className="col-5">
+                    <input
+                      type="number"
+                      className="form-control"
+                      value={set.reps}
+                      onChange={(e) => updateSetValue(exIndex, setIndex, "reps", parseInt(e.target.value))}
+                    />
+                  </div>
+                  <div className="col-5 d-flex">
+                    <input
+                      type="number"
+                      className="form-control me-2"
+                      value={set.weight}
+                      onChange={(e) => updateSetValue(exIndex, setIndex, "weight", parseFloat(e.target.value))}
+                    />
+                    <button
+                      className="btn btn-sm btn-outline-danger"
+                      onClick={() => removeSet(exIndex, setIndex)}
+                    >
+                      ×
+                    </button>
+                  </div>
+                </div>
+              ))}
+
+              <button
+                className="btn btn-sm btn-outline-primary mt-2"
+                onClick={() => addSet(exIndex)}
+              >
+                + Add Set
+              </button>
+            </div>
+          ))}
+
+          <button className="btn btn-outline-primary mb-3" onClick={addExercise}>
+            + Add Exercise
           </button>
+
+          <div className="d-flex gap-3">
+            <button className="btn btn-primary" onClick={handleUpdate}>
+              Submit Update
+            </button>
+            <button className="btn btn-danger" onClick={handleDeleteWorkout}>
+              Delete Workout
+            </button>
+          </div>
         </>
       )}
 
