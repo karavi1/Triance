@@ -20,7 +20,6 @@ export default function UpdateWorkout() {
   const [username, setUsername] = useState("");
   const [categories, setCategories] = useState([]);
   const [groupedExercises, setGroupedExercises] = useState({});
-
   const [toast, setToast] = useState({ show: false, message: "", variant: "info" });
 
   useEffect(() => {
@@ -45,7 +44,11 @@ export default function UpdateWorkout() {
   const handleSelectWorkout = (id) => {
     const workout = workouts.find((w) => w.id === id);
     if (!workout) return;
-    setSelectedWorkout(JSON.parse(JSON.stringify(workout)));
+    const sortedLoggedExercises = workout.logged_exercises.map((le) => ({
+      ...le,
+      sets: [...le.sets].sort((a, b) => a.set_number - b.set_number),
+    }));
+    setSelectedWorkout({ ...workout, logged_exercises: sortedLoggedExercises });
     setNotes(workout.notes || "");
     setWorkoutType(workout.workout_type || "");
   };
@@ -150,7 +153,6 @@ export default function UpdateWorkout() {
         </button>
       </div>
 
-      {/* Centered Toast */}
       <ToastContainer className="position-absolute top-50 start-50 translate-middle" style={{ zIndex: 1060 }}>
         <Toast bg={toast.variant} show={toast.show} onClose={() => setToast({ ...toast, show: false })} delay={4000} autohide>
           <Toast.Body className="text-white text-center">{toast.message}</Toast.Body>
