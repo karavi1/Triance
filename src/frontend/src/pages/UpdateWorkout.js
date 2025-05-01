@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import Toast from "react-bootstrap/Toast";
+import ToastContainer from "react-bootstrap/ToastContainer";
 
 const BASE_URL = "http://18.191.202.36:8000";
 
@@ -15,15 +17,21 @@ export default function UpdateWorkout() {
   const [selectedWorkout, setSelectedWorkout] = useState(null);
   const [notes, setNotes] = useState("");
   const [workoutType, setWorkoutType] = useState("");
-  const [message, setMessage] = useState("");
   const [username, setUsername] = useState("");
   const [categories, setCategories] = useState([]);
   const [groupedExercises, setGroupedExercises] = useState({});
+
+  const [toast, setToast] = useState({ show: false, message: "", variant: "info" });
 
   useEffect(() => {
     axios.get(`${BASE_URL}/exercises/categories`).then((res) => setCategories(res.data));
     axios.get(`${BASE_URL}/exercises/categorized`).then((res) => setGroupedExercises(res.data));
   }, []);
+
+  const showToast = (message, variant = "info") => {
+    setToast({ show: true, message, variant });
+    setTimeout(() => setToast({ show: false, message: "", variant: "info" }), 4000);
+  };
 
   const fetchWorkoutsByUser = async () => {
     try {
@@ -88,7 +96,7 @@ export default function UpdateWorkout() {
       notes,
       workout_type: workoutType,
       logged_exercises: selectedWorkout.logged_exercises.map((le) => ({
-        exercise_name: le.exercise.name,
+        name: le.exercise.name,
         sets: le.sets.map((s) => ({
           set_number: s.set_number,
           reps: s.reps,
@@ -99,11 +107,16 @@ export default function UpdateWorkout() {
 
     try {
       await axios.patch(`${BASE_URL}/workouts/${selectedWorkout.id}`, payload);
-      setMessage("Workout updated successfully!");
+      showToast("Workout updated successfully!", "success");
       await fetchWorkoutsByUser();
     } catch (err) {
-      console.error("Update failed", err);
-      setMessage("Update failed: " + (err.response?.data?.detail || "Unknown error"));
+      const details = err.response?.data?.detail;
+      if (Array.isArray(details)) {
+        const formatted = details.map((d) => `${d.loc?.join('.')}: ${d.msg}`).join("; ");
+        showToast("Update failed: " + formatted, "danger");
+      } else {
+        showToast("Update failed: " + (typeof details === "string" ? details : "Unknown error"), "danger");
+      }
     }
   };
 
@@ -112,19 +125,19 @@ export default function UpdateWorkout() {
 
     try {
       await axios.delete(`${BASE_URL}/workouts/${selectedWorkout.id}`);
-      setMessage("Workout deleted successfully.");
+      showToast("Workout deleted successfully.", "success");
       setSelectedWorkout(null);
       setNotes("");
       setWorkoutType("");
       await fetchWorkoutsByUser();
     } catch (err) {
       console.error("Delete failed", err);
-      setMessage("Failed to delete workout.");
+      showToast("Failed to delete workout.", "danger");
     }
   };
 
   return (
-    <div className="card p-4">
+    <div className="card p-4 position-relative">
       <div className="input-group mb-2">
         <input
           className="form-control"
@@ -136,6 +149,13 @@ export default function UpdateWorkout() {
           Fetch Workouts by user
         </button>
       </div>
+
+      {/* Centered Toast */}
+      <ToastContainer className="position-absolute top-50 start-50 translate-middle" style={{ zIndex: 1060 }}>
+        <Toast bg={toast.variant} show={toast.show} onClose={() => setToast({ ...toast, show: false })} delay={4000} autohide>
+          <Toast.Body className="text-white text-center">{toast.message}</Toast.Body>
+        </Toast>
+      </ToastContainer>
 
       <div className="mb-3">
         <select
@@ -264,8 +284,6 @@ export default function UpdateWorkout() {
           </div>
         </>
       )}
-
-      {message && <div className="alert alert-info mt-3">{message}</div>}
     </div>
   );
 }

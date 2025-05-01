@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import Toast from "react-bootstrap/Toast";
+import ToastContainer from "react-bootstrap/ToastContainer";
 
 const BASE_URL = "http://18.191.202.36:8000";
 
@@ -18,11 +20,10 @@ export default function CreateWorkout() {
   const [notes, setNotes] = useState("");
   const [category, setCategory] = useState("");
   const [loggedExercises, setLoggedExercises] = useState([createDefaultExercise()]);
-  const [message, setMessage] = useState("");
-
   const [users, setUsers] = useState([]);
   const [groupedExercises, setGroupedExercises] = useState({});
   const [categories, setCategories] = useState([]);
+  const [toast, setToast] = useState({ show: false, message: "", variant: "info" });
 
   useEffect(() => {
     axios.get(`${BASE_URL}/users`)
@@ -43,6 +44,11 @@ export default function CreateWorkout() {
         setCategories([]);
       });
   }, []);
+
+  const showToast = (message, variant = "info") => {
+    setToast({ show: true, message, variant });
+    setTimeout(() => setToast({ show: false, message: "", variant: "info" }), 4000);
+  };
 
   const handleExerciseChange = (index, field, value) => {
     const updated = [...loggedExercises];
@@ -80,7 +86,6 @@ export default function CreateWorkout() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage("");
 
     const payload = {
       username,
@@ -94,22 +99,27 @@ export default function CreateWorkout() {
 
     try {
       await axios.post(`${BASE_URL}/workouts/`, payload);
-      setMessage("Workout created successfully!");
+      showToast("Workout created successfully!", "success");
       setUsername("");
       setNotes("");
       setCategory("");
       setLoggedExercises([createDefaultExercise()]);
     } catch (err) {
       console.error(err);
-      setMessage("Failed to create workout.");
+      showToast("Failed to create workout.", "danger");
     }
   };
 
   return (
-    <div className="container mt-5 mb-5">
-      <form onSubmit={handleSubmit}>
-        {message && <div className="alert alert-info">{message}</div>}
+    <div className="container mt-5 mb-5 position-relative">
+      {/* Centered Toast */}
+      <ToastContainer className="position-absolute top-50 start-50 translate-middle" style={{ zIndex: 1060 }}>
+        <Toast bg={toast.variant} show={toast.show} onClose={() => setToast({ ...toast, show: false })} delay={4000} autohide>
+          <Toast.Body className="text-white text-center">{toast.message}</Toast.Body>
+        </Toast>
+      </ToastContainer>
 
+      <form onSubmit={handleSubmit}>
         {/* User */}
         <div className="mb-3">
           <label className="form-label">User</label>
