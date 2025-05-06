@@ -10,10 +10,18 @@ const createDefaultSet = (set_number = 1) => ({
   reps: 8,
   weight: 0,
 });
+
 const createDefaultExercise = () => ({
   exercise_name: "",
   sets: [createDefaultSet()],
 });
+
+function formatToDatetimeLocal(isoString) {
+  const date = new Date(isoString);
+  const tzOffset = date.getTimezoneOffset() * 60000; // in ms
+  const localISO = new Date(date.getTime() - tzOffset).toISOString().slice(0, 16);
+  return localISO;
+}
 
 export default function CreateWorkout() {
   const [username, setUsername] = useState("");
@@ -24,6 +32,13 @@ export default function CreateWorkout() {
   const [groupedExercises, setGroupedExercises] = useState({});
   const [categories, setCategories] = useState([]);
   const [toast, setToast] = useState({ show: false, message: "", variant: "info" });
+  const [createdTime, setCreatedTime] = useState(() => {
+    const now = new Date();
+    return new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+      .toISOString()
+      .slice(0, 16);
+  });
+  
 
   useEffect(() => {
     axios.get(`${BASE_URL}/users`)
@@ -89,6 +104,7 @@ export default function CreateWorkout() {
 
     const payload = {
       username,
+      created_time: createdTime ? formatToDatetimeLocal(createdTime) : undefined,
       notes,
       category,
       logged_exercises: loggedExercises.map((ex) => ({
@@ -163,6 +179,17 @@ export default function CreateWorkout() {
               <option key={i} value={cat}>{cat}</option>
             ))}
           </select>
+        </div>
+
+        {/* Create Time */}
+        <div className="mb-3">
+          <label className="form-label">Workout Date & Time</label>
+          <input
+            type="datetime-local"
+            className="form-control mb-3"
+            value={createdTime}
+            onChange={(e) => setCreatedTime(e.target.value)}
+          />
         </div>
 
         {/* Exercises */}

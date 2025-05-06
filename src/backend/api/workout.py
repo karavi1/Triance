@@ -17,6 +17,9 @@ from src.backend.crud.workout import (
 
 router = APIRouter()
 
+## Dev Purposes
+
+
 @router.get("/", response_model=list[WorkoutOut])
 def get_all_workouts_handler(db: Session = Depends(get_db)):
     """
@@ -33,6 +36,9 @@ def get_workout_by_id_handler(workout_id: UUID, db: Session = Depends(get_db)):
     if not workout:
         raise HTTPException(status_code=404, detail="Workout not found")
     return workout
+
+## Prod Based, everything is gated by a user
+
 
 @router.get("/user/{username}", response_model=list[WorkoutOut])
 def get_workouts_by_user_handler(username: str, db: Session = Depends(get_db)):
@@ -84,3 +90,12 @@ def delete_workout_handler(workout_id: UUID, db: Session = Depends(get_db)):
     if not success:
         raise HTTPException(status_code=404, detail="Workout not found")
     return None
+
+
+
+## Statistics/Analytics
+
+# Num workouts per month (time period)
+# Num workouts of type per month
+# Weight Progression for each exercise
+# Ratings of workouts?

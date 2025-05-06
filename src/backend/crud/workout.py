@@ -6,9 +6,9 @@ from src.backend.models.enums import ExerciseGroup
 from src.backend.models.exercise import Exercise
 from src.backend.models.workout import Workout
 from src.backend.models.logged_exercise import LoggedExercise
+from src.backend.models.logged_exercise_set import LoggedExerciseSet
 from src.backend.schemas.logged_exercise import LoggedExerciseUpdate
 from src.backend.schemas.workout import WorkoutCreateSimple, WorkoutUpdate
-from src.backend.models.logged_exercise_set import LoggedExerciseSet
 
 def create_workout(db: Session, workout_data: WorkoutCreateSimple):
     user = db.query(User).filter(User.username == workout_data.username).first()
@@ -39,6 +39,7 @@ def create_workout(db: Session, workout_data: WorkoutCreateSimple):
 
     workout = Workout(
         user_id=user.id,
+        created_time=workout_data.created_time,
         notes=workout_data.notes,
         workout_type=workout_data.workout_type,
         logged_exercises=logged_exercises

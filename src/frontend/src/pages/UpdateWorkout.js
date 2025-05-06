@@ -12,10 +12,19 @@ const createDefaultExercise = (exerciseName = "") => ({
   sets: [createDefaultSet()],
 });
 
+
+function formatToDatetimeLocal(isoString) {
+  const date = new Date(isoString);
+  const tzOffset = date.getTimezoneOffset() * 60000; // in ms
+  const localISO = new Date(date.getTime() - tzOffset).toISOString().slice(0, 16);
+  return localISO;
+}
+
 export default function UpdateWorkout() {
   const [workouts, setWorkouts] = useState([]);
   const [selectedWorkout, setSelectedWorkout] = useState(null);
   const [notes, setNotes] = useState("");
+  const [createdTime, setCreatedTime] = useState(null);
   const [workoutType, setWorkoutType] = useState("");
   const [username, setUsername] = useState("");
   const [categories, setCategories] = useState([]);
@@ -51,6 +60,7 @@ export default function UpdateWorkout() {
     setSelectedWorkout({ ...workout, logged_exercises: sortedLoggedExercises });
     setNotes(workout.notes || "");
     setWorkoutType(workout.workout_type || "");
+    setCreatedTime(workout.created_time || null);
   };
 
   const updateExerciseName = (exIndex, name) => {
@@ -97,6 +107,7 @@ export default function UpdateWorkout() {
 
     const payload = {
       notes,
+      created_time: createdTime ? formatToDatetimeLocal(createdTime) : undefined,
       workout_type: workoutType,
       logged_exercises: selectedWorkout.logged_exercises.map((le) => ({
         name: le.exercise.name,
@@ -199,6 +210,17 @@ export default function UpdateWorkout() {
                 </option>
               ))}
             </select>
+          </div>
+
+          {/* Create Time */}
+          <div className="mb-3">
+            <label className="form-label">Workout Date & Time</label>
+            <input
+              type="datetime-local"
+              className="form-control mb-3"
+              value={createdTime}
+              onChange={(e) => setCreatedTime(e.target.value)}
+            />
           </div>
 
           {selectedWorkout.logged_exercises.map((ex, exIndex) => (

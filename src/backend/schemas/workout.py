@@ -15,12 +15,14 @@ class WorkoutCreate(WorkoutBase):
 
 class WorkoutCreateSimple(BaseModel):
     username: str
+    created_time: Optional[datetime] = None
     notes: Optional[str] = None
     workout_type: Optional[ExerciseGroup] = None
     logged_exercises: List[LoggedExerciseCreateByName] = Field(..., min_length=1)
 
 class WorkoutUpdate(BaseModel):
     notes: Optional[str] = None
+    created_time: Optional[datetime] = None
     workout_type: Optional[ExerciseGroup] = None
     logged_exercises: Optional[List[LoggedExerciseCreateByName]] = None
 

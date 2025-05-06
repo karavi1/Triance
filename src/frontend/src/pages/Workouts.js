@@ -6,20 +6,20 @@ import UpdateWorkout from "./UpdateWorkout";
 const BASE_URL = "http://18.191.202.36:8000";
 
 export default function Workouts() {
-  const [workoutId, setWorkoutId] = useState("");
   const [username, setUsername] = useState("");
   const [type, setType] = useState("Push");
   const [singleWorkout, setSingleWorkout] = useState(null);
+  const [allWorkouts, setAllWorkouts] = useState(null);
   const [message, setMessage] = useState("");
 
-  const fetchByUser = async () => {
+  const fetchAllByUser = async () => {
     try {
       const res = await axios.get(`${BASE_URL}/workouts/user/${username}`);
-      const latest = res.data[res.data.length - 1];
-      setSingleWorkout(latest);
+      setAllWorkouts(res.data);
+      setSingleWorkout(null);
       setMessage("");
     } catch (err) {
-      setSingleWorkout(null);
+      setAllWorkouts(null);
       setMessage("No workouts for that user");
     }
   };
@@ -28,6 +28,7 @@ export default function Workouts() {
     try {
       const res = await axios.get(`${BASE_URL}/workouts/user/${username}/latest`);
       setSingleWorkout(res.data);
+      setAllWorkouts(null);
       setMessage("");
     } catch (err) {
       setSingleWorkout(null);
@@ -39,6 +40,7 @@ export default function Workouts() {
     try {
       const res = await axios.get(`${BASE_URL}/workouts/user/${username}/latest/${type}`);
       setSingleWorkout(res.data);
+      setAllWorkouts(null);
       setMessage("");
     } catch (err) {
       setSingleWorkout(null);
@@ -62,8 +64,8 @@ export default function Workouts() {
             value={username}
             onChange={(e) => setUsername(e.target.value)}
           />
-          <button className="btn btn-outline-primary" onClick={fetchByUser}>
-            Get All (Most Recent Shown)
+          <button className="btn btn-outline-primary" onClick={fetchAllByUser}>
+            Get All
           </button>
           <button className="btn btn-outline-secondary" onClick={fetchLatestByUser}>
             Get Latest Workout
@@ -90,6 +92,20 @@ export default function Workouts() {
           </button>
         </div>
       </div>
+
+      {/* Multiple Simple Workout Display */}
+      {allWorkouts &&
+        allWorkouts.map((singleWorkout, index) =>
+          singleWorkout ? (
+            <div key={index} className="card p-3 mb-4">
+              <p><strong>Number:</strong> {index+1}</p>
+              <p><strong>ID:</strong> {singleWorkout.id}</p>
+              <p><strong>Category:</strong> {singleWorkout.workout_type || "N/A"}</p>
+              <p><strong>Date:</strong> {new Date(singleWorkout.created_time || singleWorkout.workout_date).toLocaleString()}</p>
+            </div>
+          ) : null
+        )
+      }
 
       {/* Single Workout Display */}
       {singleWorkout && (
