@@ -1,14 +1,14 @@
+from dateutil.relativedelta import relativedelta
 from http.client import HTTPException
-from sqlalchemy.orm import Session
-from uuid import UUID, uuid4
 from src.backend.models.user import User
 from src.backend.models.enums import ExerciseGroup
 from src.backend.models.exercise import Exercise
 from src.backend.models.workout import Workout
 from src.backend.models.logged_exercise import LoggedExercise
 from src.backend.models.logged_exercise_set import LoggedExerciseSet
-from src.backend.schemas.logged_exercise import LoggedExerciseUpdate
 from src.backend.schemas.workout import WorkoutCreateSimple, WorkoutUpdate
+from sqlalchemy.orm import Session
+from uuid import UUID, uuid4
 
 def create_workout(db: Session, workout_data: WorkoutCreateSimple):
     user = db.query(User).filter(User.username == workout_data.username).first()
@@ -125,3 +125,33 @@ def delete_workout(db: Session, workout_id: UUID):
     db.delete(workout)
     db.commit()
     return True
+    
+def calculate_num_workouts_by_month(username: str, db: Session):
+    workouts = get_all_workouts_by_name(username, db)
+    num_workouts = len(workouts)
+    
+    if num_workouts <= 1:
+        return num_workouts
+    
+    latest_time = workouts[0].created_time
+    earliest_time = workouts[-1].created_time
+
+    diff = relativedelta(latest_time, earliest_time)
+    total_months = diff.years * 12 + diff.months + (diff.days / 30)
+
+    if total_months == 0:
+        return float(num_workouts)
+
+    return num_workouts / total_months
+    
+def calculate_num_workouts_by_type(username: str, workout_type: str, db: Session):
+    return (
+        db.query(Workout)
+        .join(User, Workout.user_id == User.id)
+        .filter(
+            User.username == username,
+            Workout.workout_type == ExerciseGroup(workout_type)
+        )
+        .order_by(Workout.created_time.desc())
+        .count()
+    )

@@ -217,3 +217,66 @@ def test_api_update_workout(client, setup_user_and_exercise_api):
     assert len(data["logged_exercises"]) == 1
     assert len(data["logged_exercises"][0]["sets"]) == 2
     assert data["logged_exercises"][0]["sets"][0]["weight"] == 140.0
+
+def test_api_workout_frequency_by_month(client, setup_user_and_exercise_api):
+    setup_user_and_exercise_api(username="frequser", email="freq@example.com", exercise_name="Squat", category="Quads")
+
+    client.post("/workouts/", json={
+        "username": "frequser",
+        "notes": "Old workout",
+        "created_time": "2024-03-01T10:00",
+        "workout_type": "Quads",
+        "logged_exercises": [{
+            "name": "Squat",
+            "sets": [{"set_number": 1, "reps": 10, "weight": 100.0}]
+        }]
+    })
+
+    client.post("/workouts/", json={
+        "username": "frequser",
+        "notes": "Recent workout",
+        "created_time": "2024-05-01T10:00",
+        "workout_type": "Quads",
+        "logged_exercises": [{
+            "name": "Squat",
+            "sets": [{"set_number": 1, "reps": 8, "weight": 110.0}]
+        }]
+    })
+
+    res = client.get("/workouts/user/frequser/frequency/month")
+    assert res.status_code == 200
+    frequency = res.json()
+    assert frequency > 0
+
+def test_api_workout_frequency_by_type(client, setup_user_and_exercise_api):
+    setup_user_and_exercise_api(username="typeuser", email="type@example.com", exercise_name="Bench Press", category="Push")
+
+    for _ in range(3):
+        client.post("/workouts/", json={
+            "username": "typeuser",
+            "workout_type": "Push",
+            "logged_exercises": [{
+                "name": "Bench Press",
+                "sets": [{"set_number": 1, "reps": 10, "weight": 100.0}]
+            }]
+        })
+
+    res = client.get("/workouts/user/typeuser/frequency/Push")
+    assert res.status_code == 200
+    assert res.json() == 3
+
+def test_api_workout_frequency_by_type_zero(client, setup_user_and_exercise_api):
+    setup_user_and_exercise_api(username="typeuser2", email="type2@example.com", exercise_name="Deadlift", category="Pull")
+
+    client.post("/workouts/", json={
+        "username": "typeuser2",
+        "workout_type": "Pull",
+        "logged_exercises": [{
+            "name": "Deadlift",
+            "sets": [{"set_number": 1, "reps": 8, "weight": 120.0}]
+        }]
+    })
+
+    res = client.get("/workouts/user/typeuser2/frequency/Push")
+    assert res.status_code == 200
+    assert res.json() == 0

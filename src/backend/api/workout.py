@@ -12,7 +12,9 @@ from src.backend.crud.workout import (
     get_last_workout,
     get_last_workout_based_on_username_and_type,
     get_all_workouts_by_name,
-    update_workout
+    update_workout,
+    calculate_num_workouts_by_month,
+    calculate_num_workouts_by_type
 )
 
 router = APIRouter()
@@ -91,11 +93,15 @@ def delete_workout_handler(workout_id: UUID, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Workout not found")
     return None
 
-
-
 ## Statistics/Analytics
 
-# Num workouts per month (time period)
-# Num workouts of type per month
 # Weight Progression for each exercise
 # Ratings of workouts?
+
+@router.get("/user/{username}/frequency/month")
+def get_workout_frequency_by_month(username: str, db: Session = Depends(get_db)):
+    return calculate_num_workouts_by_month(username, db)
+
+@router.get("/user/{username}/frequency/{workout_type}")
+def get_workout_frequency_by_type(username: str, workout_type: str, db: Session = Depends(get_db)):
+    return calculate_num_workouts_by_type(username, workout_type, db)

@@ -1,4 +1,6 @@
 import pytest
+from datetime import datetime, timezone
+from dateutil.relativedelta import relativedelta
 from src.backend.crud import workout as crud_workout
 from src.backend.models.enums import ExerciseGroup
 from src.backend.schemas.workout import WorkoutCreateSimple, WorkoutUpdate
@@ -160,3 +162,70 @@ def test_get_last_workout_by_type_for_different_user(db, make_logged_exercise):
 
     result = crud_workout.get_last_workout_based_on_username_and_type("user1", "Quads", db)
     assert result is None
+
+
+def test_calculate_num_workouts_by_type(db, test_user, test_exercise, make_logged_exercise):
+    crud_workout.create_workout(db, WorkoutCreateSimple(
+        username=test_user.username,
+        notes="Push 1",
+        workout_type=ExerciseGroup.PUSH,
+        logged_exercises=[make_logged_exercise("Deadlift", [(8, 100.0)])]
+    ))
+
+    crud_workout.create_workout(db, WorkoutCreateSimple(
+        username=test_user.username,
+        notes="Push 2",
+        workout_type=ExerciseGroup.PUSH,
+        logged_exercises=[make_logged_exercise("Deadlift", [(6, 120.0)])]
+    ))
+
+    crud_workout.create_workout(db, WorkoutCreateSimple(
+        username=test_user.username,
+        notes="Pull day",
+        workout_type=ExerciseGroup.PULL,
+        logged_exercises=[make_logged_exercise("Deadlift", [(5, 130.0)])]
+    ))
+
+    push_result = crud_workout.calculate_num_workouts_by_type(test_user.username, "Push", db)
+    pull_result = crud_workout.calculate_num_workouts_by_type(test_user.username, "Pull", db)
+    upper_result = crud_workout.calculate_num_workouts_by_type(test_user.username, "Upper", db)
+
+    assert push_result is 2
+    assert pull_result is 1
+    assert upper_result is 0
+
+def test_calculate_num_workouts_by_month(db, test_user, test_exercise, make_logged_exercise):
+    crud_workout.create_workout(db, WorkoutCreateSimple(
+        username=test_user.username,
+        notes="Push 1",
+        workout_type=ExerciseGroup.PUSH,
+        logged_exercises=[make_logged_exercise("Deadlift", [(8, 100.0)])],
+        created_time=datetime.now(timezone.utc) - relativedelta(months=2)
+    ))
+        
+    crud_workout.create_workout(db, WorkoutCreateSimple(
+        username=test_user.username,
+        notes="Pull 1",
+        workout_type=ExerciseGroup.PULL,
+        logged_exercises=[make_logged_exercise("Deadlift", [(8, 100.0)])],
+        created_time=datetime.now(timezone.utc)
+    ))
+
+    crud_workout.create_workout(db, WorkoutCreateSimple(
+        username=test_user.username,
+        notes="Quad 1",
+        workout_type=ExerciseGroup.QUADS,
+        logged_exercises=[make_logged_exercise("Deadlift", [(8, 100.0)])],
+        created_time=datetime.now(timezone.utc) - relativedelta(months=2)
+    ))
+        
+    crud_workout.create_workout(db, WorkoutCreateSimple(
+        username=test_user.username,
+        notes="Ham 1",
+        workout_type=ExerciseGroup.HAMS,
+        logged_exercises=[make_logged_exercise("Deadlift", [(8, 100.0)])],
+        created_time=datetime.now(timezone.utc)
+    ))
+
+    result = crud_workout.calculate_num_workouts_by_month(test_user.username, db)
+    assert result == 2.0
