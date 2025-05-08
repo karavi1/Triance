@@ -12,6 +12,7 @@ export default function Exercises() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [primaryMuscles, setPrimaryMuscles] = useState("");
+  const [secondaryMuscles, setSecondaryMuscles] = useState("");
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
 
@@ -59,6 +60,10 @@ export default function Exercises() {
         description,
         category: selectedCategory,
         primary_muscles: [primaryMuscles],
+        secondary_muscles: secondaryMuscles
+          .split(",")
+          .map((s) => s.trim())
+          .filter((s) => s)
       });
       setName("");
       setDescription("");
@@ -138,6 +143,12 @@ export default function Exercises() {
           placeholder="Primary Muscle Group"
           value={primaryMuscles}
           onChange={(e) => setPrimaryMuscles(e.target.value)}
+        />
+        <input
+          className="form-control mb-3"
+          placeholder="Secondary Muscles (comma-separated)"
+          value={secondaryMuscles}
+          onChange={(e) => setSecondaryMuscles(e.target.value)}
         />
         <select
           className="form-select mb-3"

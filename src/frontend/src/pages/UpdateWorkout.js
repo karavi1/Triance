@@ -106,7 +106,7 @@ export default function UpdateWorkout() {
     if (!selectedWorkout) return;
 
     const payload = {
-      notes,
+      notes: notes,
       created_time: createdTime ? formatToDatetimeLocal(createdTime) : undefined,
       workout_type: workoutType,
       logged_exercises: selectedWorkout.logged_exercises.map((le) => ({
@@ -187,14 +187,6 @@ export default function UpdateWorkout() {
 
       {selectedWorkout && (
         <>
-          <div className="mb-3">
-            <label>Notes</label>
-            <textarea
-              className="form-control"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-            />
-          </div>
 
           <div className="mb-3">
             <label>Workout Type</label>
@@ -220,6 +212,15 @@ export default function UpdateWorkout() {
               className="form-control mb-3"
               value={createdTime}
               onChange={(e) => setCreatedTime(e.target.value)}
+            />
+          </div>
+
+          <div className="mb-3">
+            <label>Notes</label>
+            <textarea
+              className="form-control"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
             />
           </div>
 

@@ -103,10 +103,10 @@ export default function CreateWorkout() {
     e.preventDefault();
 
     const payload = {
-      username,
+      username: username,
       created_time: createdTime ? formatToDatetimeLocal(createdTime) : undefined,
-      notes,
-      category,
+      notes: notes,
+      workout_type: category,
       logged_exercises: loggedExercises.map((ex) => ({
         name: ex.exercise_name,
         sets: ex.sets,
@@ -154,17 +154,6 @@ export default function CreateWorkout() {
           </select>
         </div>
 
-        {/* Notes */}
-        <div className="mb-3">
-          <label className="form-label">Notes</label>
-          <textarea
-            className="form-control"
-            placeholder="Optional notes..."
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-          />
-        </div>
-
         {/* Category */}
         <div className="mb-3">
           <label className="form-label">Workout Type</label>
@@ -189,6 +178,17 @@ export default function CreateWorkout() {
             className="form-control mb-3"
             value={createdTime}
             onChange={(e) => setCreatedTime(e.target.value)}
+          />
+        </div>
+
+        {/* Notes */}
+        <div className="mb-3">
+          <label className="form-label">Notes</label>
+          <textarea
+            className="form-control"
+            placeholder="Optional notes..."
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
           />
         </div>
 
