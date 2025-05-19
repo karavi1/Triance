@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PYTHONPATH: ${{ github.workspace }}
-      DATABASE_URL: sqlite:///./test.db
+      DATABASE_URL: sqlite:///test.db
 
     steps:
       - name: Checkout code
