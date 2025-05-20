@@ -3,7 +3,7 @@ import axios from "axios";
 import CreateWorkout from "./CreateWorkout";
 import UpdateWorkout from "./UpdateWorkout";
 
-const BASE_URL = "http://18.191.202.36:8000";
+const BASE_URL = "/api";
 
 export default function Workouts() {
   const [username, setUsername] = useState("");

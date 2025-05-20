@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
-const BASE_URL = "http://18.191.202.36:8000";
+const BASE_URL = "/api";
 
 function Home() {
   const [message, setMessage] = useState("");

@@ -3,7 +3,7 @@ import axios from "axios";
 import Toast from "react-bootstrap/Toast";
 import ToastContainer from "react-bootstrap/ToastContainer";
 
-const BASE_URL = "http://18.191.202.36:8000";
+const BASE_URL = "/api";
 
 const createDefaultSet = (set_number = 1) => ({ set_number, reps: 8, weight: 0 });
 

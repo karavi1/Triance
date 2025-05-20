@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Modal, Button, Form } from "react-bootstrap";
 
-const BASE_URL = "http://18.191.202.36:8000/exercises";
+const BASE_URL = "/api/exercises";
 
 export default function Exercises() {
   const [exercises, setExercises] = useState([]);

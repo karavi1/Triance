@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-const BASE_URL = "http://18.191.202.36:8000/users";
+const BASE_URL = "/api/users";
 
 export default function Users() {
   const [users, setUsers] = useState([]);

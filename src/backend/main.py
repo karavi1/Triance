@@ -10,10 +10,13 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS Middleware -- Adjust this for production security
+# CORS Middleware -- Add triance.app later
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Specify frontend URL(s)
+    allow_origins=[
+        "http://3.19.64.107",
+        "http://localhost:3000",
+        ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
