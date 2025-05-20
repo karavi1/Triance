@@ -1,4 +1,4 @@
-name: CFT Python Test Suite
+name: Triance Python Test Suite
 
 on:
   push:

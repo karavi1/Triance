@@ -6,7 +6,7 @@ import Dashboard from './pages/Dashboard';
 import Home from "./pages/Home";
 import Exercises from "./pages/Exercises";
 import Workouts from "./pages/Workouts";
-import Users from "./pages/Users"; // 👈 Import the Users page
+import Users from "./pages/Users";
 
 function App() {
   return (
@@ -14,7 +14,7 @@ function App() {
       {/* Bootstrap Navbar */}
       <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
         <div className="container-fluid">
-          <Link className="navbar-brand" to="/">CFT</Link>
+          <Link className="navbar-brand" to="/">Triance</Link>
           <button
             className="navbar-toggler"
             type="button"

@@ -1,3 +1,3 @@
-# CustomFitTracker (CFT)
+# Triance (Balancing 3 pillars of fitness)
 
-An application to help track your exercise!
+Track your mobility, strength and cardio fitness!
