@@ -9,17 +9,19 @@ export default function Workouts() {
   const [username, setUsername] = useState("");
   const [type, setType] = useState("Push");
   const [singleWorkout, setSingleWorkout] = useState(null);
-  const [allWorkouts, setAllWorkouts] = useState(null);
+  const [allWorkouts, setAllWorkouts] = useState([]);
   const [message, setMessage] = useState("");
 
   const fetchAllByUser = async () => {
     try {
       const res = await axios.get(`${BASE_URL}/workouts/user/${username}`);
-      setAllWorkouts(res.data);
+      console.log("All workouts response:", res.data);
+      setAllWorkouts(Array.isArray(res.data) ? res.data : []);
       setSingleWorkout(null);
-      setMessage("");
+      setMessage(res.data.length === 0 ? "No workouts found for user" : "");
     } catch (err) {
-      setAllWorkouts(null);
+      console.error("Failed to fetch all workouts", err);
+      setAllWorkouts([]);
       setMessage("No workouts for that user");
     }
   };
@@ -27,10 +29,12 @@ export default function Workouts() {
   const fetchLatestByUser = async () => {
     try {
       const res = await axios.get(`${BASE_URL}/workouts/user/${username}/latest`);
-      setSingleWorkout(res.data);
-      setAllWorkouts(null);
-      setMessage("");
+      console.log("Latest workout:", res.data);
+      setSingleWorkout(res.data || null);
+      setAllWorkouts([]);
+      setMessage(!res.data ? "No latest workout found" : "");
     } catch (err) {
+      console.error("Failed to fetch latest workout", err);
       setSingleWorkout(null);
       setMessage("No latest workout found");
     }
@@ -39,10 +43,12 @@ export default function Workouts() {
   const fetchLatestByUserAndType = async () => {
     try {
       const res = await axios.get(`${BASE_URL}/workouts/user/${username}/latest/${type}`);
-      setSingleWorkout(res.data);
-      setAllWorkouts(null);
-      setMessage("");
+      console.log("Latest workout by type:", res.data);
+      setSingleWorkout(res.data || null);
+      setAllWorkouts([]);
+      setMessage(!res.data ? "No workout of this type found for user" : "");
     } catch (err) {
+      console.error("Failed to fetch latest workout by type", err);
       setSingleWorkout(null);
       setMessage("No workout of this type found for user");
     }
@@ -94,18 +100,17 @@ export default function Workouts() {
       </div>
 
       {/* Multiple Simple Workout Display */}
-      {allWorkouts &&
-        allWorkouts.map((singleWorkout, index) =>
-          singleWorkout ? (
+      {Array.isArray(allWorkouts) &&
+        allWorkouts.map((workout, index) =>
+          workout ? (
             <div key={index} className="card p-3 mb-4">
-              <p><strong>Number:</strong> {index+1}</p>
-              <p><strong>ID:</strong> {singleWorkout.id}</p>
-              <p><strong>Category:</strong> {singleWorkout.workout_type || "N/A"}</p>
-              <p><strong>Date:</strong> {new Date(singleWorkout.created_time || singleWorkout.workout_date).toLocaleString()}</p>
+              <p><strong>Number:</strong> {index + 1}</p>
+              <p><strong>ID:</strong> {workout.id}</p>
+              <p><strong>Category:</strong> {workout.workout_type || "N/A"}</p>
+              <p><strong>Date:</strong> {new Date(workout.created_time || workout.workout_date).toLocaleString()}</p>
             </div>
           ) : null
-        )
-      }
+        )}
 
       {/* Single Workout Display */}
       {singleWorkout && (
@@ -117,32 +122,35 @@ export default function Workouts() {
           <p><strong>Date:</strong> {new Date(singleWorkout.created_time || singleWorkout.workout_date).toLocaleString()}</p>
 
           <div className="table-responsive mt-3">
-            {singleWorkout.logged_exercises.map((logged_exercise, idx) => {
-              const sortedSets = [...logged_exercise.sets].sort((a, b) => a.set_number - b.set_number);
-              return (
-                <div key={idx} className="mb-4">
-                  <h6><strong>{logged_exercise.exercise_name || logged_exercise.exercise?.name}</strong></h6>
-                  <table className="table table-sm table-bordered">
-                    <thead>
-                      <tr>
-                        <th scope="col">Set #</th>
-                        <th scope="col">Reps</th>
-                        <th scope="col">Weight (lb)</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {sortedSets.map((set, j) => (
-                        <tr key={j}>
-                          <td>{set.set_number}</td>
-                          <td>{set.reps}</td>
-                          <td>{set.weight}</td>
+            {Array.isArray(singleWorkout.logged_exercises) &&
+              singleWorkout.logged_exercises.map((logged_exercise, idx) => {
+                const sortedSets = Array.isArray(logged_exercise.sets)
+                  ? [...logged_exercise.sets].sort((a, b) => a.set_number - b.set_number)
+                  : [];
+                return (
+                  <div key={idx} className="mb-4">
+                    <h6><strong>{logged_exercise.exercise_name || logged_exercise.exercise?.name || "Unnamed Exercise"}</strong></h6>
+                    <table className="table table-sm table-bordered">
+                      <thead>
+                        <tr>
+                          <th scope="col">Set #</th>
+                          <th scope="col">Reps</th>
+                          <th scope="col">Weight (lb)</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              );
-            })}
+                      </thead>
+                      <tbody>
+                        {sortedSets.map((set, j) => (
+                          <tr key={j}>
+                            <td>{set.set_number}</td>
+                            <td>{set.reps}</td>
+                            <td>{set.weight}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                );
+              })}
           </div>
         </div>
       )}

@@ -25,6 +25,7 @@ export default function Users() {
       fetchAllUsers();
     } catch (err) {
       setMessage("Failed to create new user");
+      console.error(err);
     }
   };
 
@@ -45,6 +46,7 @@ export default function Users() {
       fetchAllUsers();
     } catch (err) {
       setMessage("Failed to update user");
+      console.error(err);
     }
   };
 
@@ -56,15 +58,19 @@ export default function Users() {
       fetchAllUsers();
     } catch (err) {
       setMessage("Failed to delete user");
+      console.error(err);
     }
   };
 
   const fetchAllUsers = async () => {
     try {
       const res = await axios.get(BASE_URL);
-      setUsers(res.data);
+      console.log("Users response:", res.data);
+      setUsers(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       setMessage("Failed to fetch users");
+      console.error(err);
+      setUsers([]); // fallback to empty array
     }
   };
 
@@ -122,7 +128,7 @@ export default function Users() {
         </div>
       </div>
 
-      {/* Update Existing User via Dropdown with option to Delete User too */}
+      {/* Update Existing User */}
       <div className="card p-3 mb-4">
         <h5>Update Existing User</h5>
 
@@ -131,16 +137,20 @@ export default function Users() {
             className="form-select"
             value={selectedUser?.id || ""}
             onChange={(e) => {
-              const user = users.find((u) => u.id === e.target.value);
+              const userId = e.target.value;
+              const user = Array.isArray(users)
+                ? users.find((u) => u.id === userId)
+                : null;
               setSelectedUser(user || null);
             }}
           >
             <option value="">Select a user to update</option>
-            {users.map((user) => (
-              <option key={user.id} value={user.id}>
-                {user.username} — {user.email}
-              </option>
-            ))}
+            {Array.isArray(users) &&
+              users.map((user) => (
+                <option key={user.id} value={user.id}>
+                  {user.username} — {user.email}
+                </option>
+              ))}
           </select>
         </div>
 
