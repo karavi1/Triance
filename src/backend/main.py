@@ -17,6 +17,8 @@ app.add_middleware(
         "http://3.19.64.107",
         "http://localhost:3000",
         "http://18.191.202.36:8000",
+        "https://triance.app"
+        "https://www.triance.app"
         ],
     allow_credentials=True,
     allow_methods=["*"],
