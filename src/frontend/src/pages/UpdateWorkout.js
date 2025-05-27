@@ -3,7 +3,11 @@ import axios from "axios";
 import Toast from "react-bootstrap/Toast";
 import ToastContainer from "react-bootstrap/ToastContainer";
 
-const BASE_URL = "/api";
+if (!process.env.REACT_APP_BASE_URL) {
+  throw new Error("REACT_APP_BASE_URL is not defined in the environment");
+}
+
+const BASE_URL = process.env.REACT_APP_BASE_URL;
 
 const createDefaultSet = (set_number = 1) => ({ set_number, reps: 8, weight: 0 });
 
@@ -12,12 +16,10 @@ const createDefaultExercise = (exerciseName = "") => ({
   sets: [createDefaultSet()],
 });
 
-
 function formatToDatetimeLocal(isoString) {
   const date = new Date(isoString);
-  const tzOffset = date.getTimezoneOffset() * 60000; // in ms
-  const localISO = new Date(date.getTime() - tzOffset).toISOString().slice(0, 16);
-  return localISO;
+  const tzOffset = date.getTimezoneOffset() * 60000;
+  return new Date(date.getTime() - tzOffset).toISOString().slice(0, 16);
 }
 
 export default function UpdateWorkout() {
@@ -32,8 +34,25 @@ export default function UpdateWorkout() {
   const [toast, setToast] = useState({ show: false, message: "", variant: "info" });
 
   useEffect(() => {
-    axios.get(`${BASE_URL}/exercises/categories`).then((res) => setCategories(res.data));
-    axios.get(`${BASE_URL}/exercises/categorized`).then((res) => setGroupedExercises(res.data));
+    axios.get(`${BASE_URL}/exercises/categories`)
+      .then((res) => setCategories(Array.isArray(res.data) ? res.data : []))
+      .catch((err) => {
+        console.error("Failed to fetch categories", err);
+        setCategories([]);
+      });
+
+    axios.get(`${BASE_URL}/exercises/categorized`)
+      .then((res) => {
+        if (res.data && typeof res.data === "object") {
+          setGroupedExercises(res.data);
+        } else {
+          throw new Error("Invalid exercise data");
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to fetch exercises", err);
+        setGroupedExercises({});
+      });
   }, []);
 
   const showToast = (message, variant = "info") => {
@@ -44,19 +63,22 @@ export default function UpdateWorkout() {
   const fetchWorkoutsByUser = async () => {
     try {
       const res = await axios.get(`${BASE_URL}/workouts/user/${username}`);
-      setWorkouts(res.data);
+      setWorkouts(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error("Failed to fetch workouts", err);
+      setWorkouts([]);
     }
   };
 
   const handleSelectWorkout = (id) => {
-    const workout = workouts.find((w) => w.id === id);
+    const workout = workouts.find((w) => w.id === parseInt(id));
     if (!workout) return;
-    const sortedLoggedExercises = workout.logged_exercises.map((le) => ({
-      ...le,
-      sets: [...le.sets].sort((a, b) => a.set_number - b.set_number),
-    }));
+    const sortedLoggedExercises = Array.isArray(workout.logged_exercises)
+      ? workout.logged_exercises.map((le) => ({
+          ...le,
+          sets: Array.isArray(le.sets) ? [...le.sets].sort((a, b) => a.set_number - b.set_number) : [],
+        }))
+      : [];
     setSelectedWorkout({ ...workout, logged_exercises: sortedLoggedExercises });
     setNotes(workout.notes || "");
     setWorkoutType(workout.workout_type || "");
@@ -77,15 +99,16 @@ export default function UpdateWorkout() {
 
   const addSet = (exIndex) => {
     const updated = { ...selectedWorkout };
-    const sets = updated.logged_exercises[exIndex].sets;
-    const nextSetNumber = sets.length + 1;
-    sets.push(createDefaultSet(nextSetNumber));
+    const sets = updated.logged_exercises[exIndex].sets || [];
+    sets.push(createDefaultSet(sets.length + 1));
+    updated.logged_exercises[exIndex].sets = sets;
     setSelectedWorkout(updated);
   };
 
   const removeSet = (exIndex, setIndex) => {
     const updated = { ...selectedWorkout };
-    updated.logged_exercises[exIndex].sets = updated.logged_exercises[exIndex].sets.filter((_, i) => i !== setIndex);
+    const sets = updated.logged_exercises[exIndex].sets || [];
+    updated.logged_exercises[exIndex].sets = sets.filter((_, i) => i !== setIndex);
     updated.logged_exercises[exIndex].sets.forEach((s, i) => s.set_number = i + 1);
     setSelectedWorkout(updated);
   };
@@ -106,16 +129,18 @@ export default function UpdateWorkout() {
     if (!selectedWorkout) return;
 
     const payload = {
-      notes: notes,
+      notes,
       created_time: createdTime ? formatToDatetimeLocal(createdTime) : undefined,
       workout_type: workoutType,
       logged_exercises: selectedWorkout.logged_exercises.map((le) => ({
         name: le.exercise.name,
-        sets: le.sets.map((s) => ({
-          set_number: s.set_number,
-          reps: s.reps,
-          weight: s.weight,
-        })),
+        sets: Array.isArray(le.sets)
+          ? le.sets.map((s) => ({
+              set_number: s.set_number,
+              reps: s.reps,
+              weight: s.weight,
+            }))
+          : [],
       })),
     };
 
@@ -177,7 +202,7 @@ export default function UpdateWorkout() {
           onChange={(e) => handleSelectWorkout(e.target.value)}
         >
           <option value="">Select a workout to edit</option>
-          {workouts.map((w) => (
+          {Array.isArray(workouts) && workouts.map((w) => (
             <option key={w.id} value={w.id}>
               {w.notes?.slice(0, 30) || "No notes"} — {w.workout_type}
             </option>
@@ -187,7 +212,6 @@ export default function UpdateWorkout() {
 
       {selectedWorkout && (
         <>
-
           <div className="mb-3">
             <label>Workout Type</label>
             <select
@@ -196,15 +220,12 @@ export default function UpdateWorkout() {
               onChange={(e) => setWorkoutType(e.target.value)}
             >
               <option value="">Select workout type</option>
-              {categories.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
+              {Array.isArray(categories) && categories.map((type) => (
+                <option key={type} value={type}>{type}</option>
               ))}
             </select>
           </div>
 
-          {/* Create Time */}
           <div className="mb-3">
             <label className="form-label">Workout Date & Time</label>
             <input
@@ -224,7 +245,7 @@ export default function UpdateWorkout() {
             />
           </div>
 
-          {selectedWorkout.logged_exercises.map((ex, exIndex) => (
+          {Array.isArray(selectedWorkout.logged_exercises) && selectedWorkout.logged_exercises.map((ex, exIndex) => (
             <div key={exIndex} className="border p-3 mb-4 rounded">
               <div className="d-flex justify-content-between align-items-center mb-2">
                 <h6 className="mb-0">Exercise {exIndex + 1}</h6>
@@ -241,15 +262,17 @@ export default function UpdateWorkout() {
                 onChange={(e) => updateExerciseName(exIndex, e.target.value)}
               >
                 <option value="">Select an exercise</option>
-                {Object.entries(groupedExercises).map(([category, exercises]) => (
-                  <optgroup key={category} label={category}>
-                    {exercises.map((exercise) => (
-                      <option key={exercise.id} value={exercise.name}>
-                        {exercise.name}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
+                {groupedExercises && typeof groupedExercises === "object" &&
+                  Object.entries(groupedExercises).map(([category, exercises]) => (
+                    <optgroup key={category} label={category}>
+                      {Array.isArray(exercises) &&
+                        exercises.map((exercise) => (
+                          <option key={exercise.id} value={exercise.name}>
+                            {exercise.name}
+                          </option>
+                        ))}
+                    </optgroup>
+                  ))}
               </select>
 
               <div className="row fw-bold mb-2">
@@ -258,7 +281,7 @@ export default function UpdateWorkout() {
                 <div className="col-5">Weight (lb)</div>
               </div>
 
-              {ex.sets.map((set, setIndex) => (
+              {Array.isArray(ex.sets) && ex.sets.map((set, setIndex) => (
                 <div key={setIndex} className="row mb-2 align-items-center">
                   <div className="col-2">{set.set_number}</div>
                   <div className="col-5">

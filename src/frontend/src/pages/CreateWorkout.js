@@ -3,7 +3,11 @@ import axios from "axios";
 import Toast from "react-bootstrap/Toast";
 import ToastContainer from "react-bootstrap/ToastContainer";
 
-const BASE_URL = "/api";
+if (!process.env.REACT_APP_BASE_URL) {
+  throw new Error("REACT_APP_BASE_URL is not defined in the environment");
+}
+
+const BASE_URL = process.env.REACT_APP_BASE_URL;
 
 const createDefaultSet = (set_number = 1) => ({
   set_number,
@@ -18,9 +22,8 @@ const createDefaultExercise = () => ({
 
 function formatToDatetimeLocal(isoString) {
   const date = new Date(isoString);
-  const tzOffset = date.getTimezoneOffset() * 60000; // in ms
-  const localISO = new Date(date.getTime() - tzOffset).toISOString().slice(0, 16);
-  return localISO;
+  const tzOffset = date.getTimezoneOffset() * 60000;
+  return new Date(date.getTime() - tzOffset).toISOString().slice(0, 16);
 }
 
 export default function CreateWorkout() {
@@ -38,7 +41,6 @@ export default function CreateWorkout() {
       .toISOString()
       .slice(0, 16);
   });
-  
 
   useEffect(() => {
     axios.get(`${BASE_URL}/users`)
@@ -46,8 +48,14 @@ export default function CreateWorkout() {
       .catch((err) => console.error("Error fetching users:", err));
 
     axios.get(`${BASE_URL}/exercises/categorized`)
-      .then((res) => setGroupedExercises(res.data))
-      .catch((err) => console.error("Error fetching exercises:", err));
+      .then((res) => {
+        if (res.data && typeof res.data === "object") setGroupedExercises(res.data);
+        else throw new Error("Invalid exercise format");
+      })
+      .catch((err) => {
+        console.error("Error fetching exercises:", err);
+        setGroupedExercises({});
+      });
 
     axios.get(`${BASE_URL}/exercises/categories`)
       .then((res) => {
@@ -103,9 +111,9 @@ export default function CreateWorkout() {
     e.preventDefault();
 
     const payload = {
-      username: username,
+      username,
       created_time: createdTime ? formatToDatetimeLocal(createdTime) : undefined,
-      notes: notes,
+      notes,
       workout_type: category,
       logged_exercises: loggedExercises.map((ex) => ({
         name: ex.exercise_name,
@@ -128,7 +136,6 @@ export default function CreateWorkout() {
 
   return (
     <div className="container mt-5 mb-5 position-relative">
-      {/* Centered Toast */}
       <ToastContainer className="position-absolute top-50 start-50 translate-middle" style={{ zIndex: 1060 }}>
         <Toast bg={toast.variant} show={toast.show} onClose={() => setToast({ ...toast, show: false })} delay={4000} autohide>
           <Toast.Body className="text-white text-center">{toast.message}</Toast.Body>
@@ -136,7 +143,6 @@ export default function CreateWorkout() {
       </ToastContainer>
 
       <form onSubmit={handleSubmit}>
-        {/* User */}
         <div className="mb-3">
           <label className="form-label">User</label>
           <select
@@ -146,7 +152,7 @@ export default function CreateWorkout() {
             required
           >
             <option value="">Select a user</option>
-            {users.map((user) => (
+            {Array.isArray(users) && users.map((user) => (
               <option key={user.id} value={user.username}>
                 {user.username} ({user.email})
               </option>
@@ -154,7 +160,6 @@ export default function CreateWorkout() {
           </select>
         </div>
 
-        {/* Category */}
         <div className="mb-3">
           <label className="form-label">Workout Type</label>
           <select
@@ -164,13 +169,12 @@ export default function CreateWorkout() {
             required
           >
             <option value="">Select a category</option>
-            {categories.map((cat, i) => (
+            {Array.isArray(categories) && categories.map((cat, i) => (
               <option key={i} value={cat}>{cat}</option>
             ))}
           </select>
         </div>
 
-        {/* Create Time */}
         <div className="mb-3">
           <label className="form-label">Workout Date & Time</label>
           <input
@@ -181,7 +185,6 @@ export default function CreateWorkout() {
           />
         </div>
 
-        {/* Notes */}
         <div className="mb-3">
           <label className="form-label">Notes</label>
           <textarea
@@ -192,10 +195,9 @@ export default function CreateWorkout() {
           />
         </div>
 
-        {/* Exercises */}
         <div className="mb-4">
           <h5>Exercises</h5>
-          {loggedExercises.map((ex, exIndex) => (
+          {Array.isArray(loggedExercises) && loggedExercises.map((ex, exIndex) => (
             <div key={exIndex} className="card p-3 mb-3">
               <div className="mb-3">
                 <label className="form-label">Exercise</label>
@@ -206,19 +208,20 @@ export default function CreateWorkout() {
                   required
                 >
                   <option value="">Select an exercise</option>
-                  {Object.entries(groupedExercises).map(([category, exerciseList]) => (
-                    <optgroup key={category} label={category}>
-                      {exerciseList.map((exercise) => (
-                        <option key={exercise.id} value={exercise.name}>
-                          {exercise.name}
-                        </option>
-                      ))}
-                    </optgroup>
-                  ))}
+                  {groupedExercises && typeof groupedExercises === "object" &&
+                    Object.entries(groupedExercises).map(([category, exerciseList]) => (
+                      <optgroup key={category} label={category}>
+                        {Array.isArray(exerciseList) &&
+                          exerciseList.map((exercise) => (
+                            <option key={exercise.id} value={exercise.name}>
+                              {exercise.name}
+                            </option>
+                          ))}
+                      </optgroup>
+                    ))}
                 </select>
               </div>
 
-              {/* Set Table */}
               <div className="mb-2">
                 <label className="form-label">Sets</label>
                 <table className="table table-sm">
@@ -231,7 +234,7 @@ export default function CreateWorkout() {
                     </tr>
                   </thead>
                   <tbody>
-                    {ex.sets.map((set, setIndex) => (
+                    {Array.isArray(ex.sets) && ex.sets.map((set, setIndex) => (
                       <tr key={setIndex}>
                         <td>{set.set_number}</td>
                         <td>

@@ -7,7 +7,6 @@ if (!process.env.REACT_APP_BASE_URL) {
   throw new Error("REACT_APP_BASE_URL is not defined in the environment");
 }
 
-// Dynamic BASE_URL: works in dev and prod
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 
 export default function Workouts() {
@@ -21,9 +20,10 @@ export default function Workouts() {
     try {
       const res = await axios.get(`${BASE_URL}/workouts/user/${username}`);
       console.log("All workouts response:", res.data);
-      setAllWorkouts(Array.isArray(res.data) ? res.data : []);
+      const data = res.data;
+      setAllWorkouts(Array.isArray(data) ? data : []);
       setSingleWorkout(null);
-      setMessage(res.data.length === 0 ? "No workouts found for user" : "");
+      setMessage(!Array.isArray(data) || data.length === 0 ? "No workouts found for user" : "");
     } catch (err) {
       console.error("Failed to fetch all workouts", err);
       setAllWorkouts([]);
@@ -106,16 +106,16 @@ export default function Workouts() {
 
       {/* Multiple Workouts */}
       {Array.isArray(allWorkouts) &&
-        allWorkouts.map((workout, index) =>
+        allWorkouts.map((workout, index) => (
           workout ? (
             <div key={index} className="card p-3 mb-4">
               <p><strong>Number:</strong> {index + 1}</p>
               <p><strong>ID:</strong> {workout.id}</p>
               <p><strong>Category:</strong> {workout.workout_type || "N/A"}</p>
-              <p><strong>Date:</strong> {new Date(workout.created_time || workout.workout_date).toLocaleString()}</p>
+              <p><strong>Date:</strong> {new Date(workout.created_time || workout.workout_date || Date.now()).toLocaleString()}</p>
             </div>
           ) : null
-        )}
+        ))}
 
       {/* Single Workout */}
       {singleWorkout && (
@@ -124,7 +124,7 @@ export default function Workouts() {
           <p><strong>User:</strong> {username}</p>
           <p><strong>ID:</strong> {singleWorkout.id}</p>
           <p><strong>Category:</strong> {singleWorkout.workout_type || "N/A"}</p>
-          <p><strong>Date:</strong> {new Date(singleWorkout.created_time || singleWorkout.workout_date).toLocaleString()}</p>
+          <p><strong>Date:</strong> {new Date(singleWorkout.created_time || singleWorkout.workout_date || Date.now()).toLocaleString()}</p>
 
           <div className="table-responsive mt-3">
             {Array.isArray(singleWorkout.logged_exercises) &&
@@ -134,7 +134,13 @@ export default function Workouts() {
                   : [];
                 return (
                   <div key={idx} className="mb-4">
-                    <h6><strong>{logged_exercise.exercise_name || logged_exercise.exercise?.name || "Unnamed Exercise"}</strong></h6>
+                    <h6>
+                      <strong>
+                        {logged_exercise.exercise_name ||
+                          logged_exercise.exercise?.name ||
+                          "Unnamed Exercise"}
+                      </strong>
+                    </h6>
                     <table className="table table-sm table-bordered">
                       <thead>
                         <tr>
