@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-const BASE_URL = "/api/users";
+if (!process.env.REACT_APP_BASE_URL) {
+  throw new Error("REACT_APP_BASE_URL is not defined in the environment");
+}
+
+// Dynamic BASE_URL: works in dev and prod
+const BASE_URL = process.env.REACT_APP_BASE_URL + "/users";
 
 export default function Users() {
   const [users, setUsers] = useState([]);

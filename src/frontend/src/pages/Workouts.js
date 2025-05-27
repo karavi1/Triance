@@ -3,7 +3,12 @@ import axios from "axios";
 import CreateWorkout from "./CreateWorkout";
 import UpdateWorkout from "./UpdateWorkout";
 
-const BASE_URL = "/api";
+if (!process.env.REACT_APP_BASE_URL) {
+  throw new Error("REACT_APP_BASE_URL is not defined in the environment");
+}
+
+// Dynamic BASE_URL: works in dev and prod
+const BASE_URL = process.env.REACT_APP_BASE_URL;
 
 export default function Workouts() {
   const [username, setUsername] = useState("");
@@ -60,7 +65,7 @@ export default function Workouts() {
 
       {message && <div className="alert alert-info">{message}</div>}
 
-      {/* Workout Lookup by User */}
+      {/* Lookup Controls */}
       <div className="card p-3 mb-4">
         <h5>Get Workout by Username</h5>
         <div className="input-group mb-2">
@@ -99,7 +104,7 @@ export default function Workouts() {
         </div>
       </div>
 
-      {/* Multiple Simple Workout Display */}
+      {/* Multiple Workouts */}
       {Array.isArray(allWorkouts) &&
         allWorkouts.map((workout, index) =>
           workout ? (
@@ -112,7 +117,7 @@ export default function Workouts() {
           ) : null
         )}
 
-      {/* Single Workout Display */}
+      {/* Single Workout */}
       {singleWorkout && (
         <div className="card p-3 mb-4">
           <h5>Workout Details</h5>
@@ -133,9 +138,9 @@ export default function Workouts() {
                     <table className="table table-sm table-bordered">
                       <thead>
                         <tr>
-                          <th scope="col">Set #</th>
-                          <th scope="col">Reps</th>
-                          <th scope="col">Weight (lb)</th>
+                          <th>Set #</th>
+                          <th>Reps</th>
+                          <th>Weight (lb)</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -155,7 +160,7 @@ export default function Workouts() {
         </div>
       )}
 
-      {/* Create Workout Toggle */}
+      {/* Create & Update Workout Collapsibles */}
       <div className="card p-3 mb-3">
         <button
           className="btn btn-link text-start fw-bold"
@@ -172,7 +177,6 @@ export default function Workouts() {
         </div>
       </div>
 
-      {/* Update Workout Toggle */}
       <div className="card p-3 mb-3">
         <button
           className="btn btn-link text-start fw-bold"

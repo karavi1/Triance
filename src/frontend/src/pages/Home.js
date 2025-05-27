@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
-const BASE_URL = "/api";
+if (!process.env.REACT_APP_BASE_URL) {
+  throw new Error("REACT_APP_BASE_URL is not defined in the environment");
+}
+
+// Dynamic BASE_URL: works in dev and prod
+const BASE_URL = process.env.REACT_APP_BASE_URL;
 
 function Home() {
   const [message, setMessage] = useState("");

@@ -2,7 +2,12 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Modal, Button, Form } from "react-bootstrap";
 
-const BASE_URL = "/api/exercises";
+if (!process.env.REACT_APP_BASE_URL) {
+  throw new Error("REACT_APP_BASE_URL is not defined in the environment");
+}
+
+// Dynamic BASE_URL: works in dev and prod
+const BASE_URL = process.env.REACT_APP_BASE_URL + "/exercises";
 
 export default function Exercises() {
   const [exercises, setExercises] = useState([]);
