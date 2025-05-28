@@ -10,33 +10,31 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS Middleware -- Add triance.app later
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://3.19.64.107",
         "http://localhost:3000",
         "http://18.191.202.36:8000",
-        "https://triance.app"
+        "https://triance.app",
         "https://www.triance.app"
-        ],
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Include trimmed API routes
-app.include_router(user.router, prefix="/users", tags=["Users"])
-app.include_router(exercise.router, prefix="/exercises", tags=["Exercises"])
-app.include_router(workout.router, prefix="/workouts", tags=["Workouts"])
-app.include_router(logged_exercise.router, prefix="/logged_exercises", tags=["Logged Exercises"])
+app.include_router(user.router, prefix="/api/users", tags=["Users"])
+app.include_router(exercise.router, prefix="/api/exercises", tags=["Exercises"])
+app.include_router(workout.router, prefix="/api/workouts", tags=["Workouts"])
+app.include_router(logged_exercise.router, prefix="/api/logged_exercises", tags=["Logged Exercises"])
 
 # Root endpoint
-@app.get("/", tags=["Root"])
+@app.get("/api", tags=["Root"])
 def read_root():
     return {"message": "Welcome to the Fitness Tracker API!"}
 
 # /docs endpoint that React is expecting
-@app.get("/custom-docs", tags=["Docs"])
+@app.get("/api/custom-docs", tags=["Docs"])
 def get_docs():
     return {"message": "Hello from the backend!"}
