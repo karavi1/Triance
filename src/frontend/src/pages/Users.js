@@ -6,7 +6,7 @@ if (!process.env.REACT_APP_BASE_URL) {
 }
 
 // Dynamic BASE_URL: works in dev and prod
-const BASE_URL = process.env.REACT_APP_BASE_URL + "/users";
+const BASE_URL = process.env.REACT_APP_BASE_URL;
 
 export default function Users() {
   const [users, setUsers] = useState([]);
@@ -23,7 +23,7 @@ export default function Users() {
 
   const createNewUser = async () => {
     try {
-      await axios.post(BASE_URL, { email, username });
+      await axios.post(`${BASE_URL}/users/`, { email, username });
       setEmail("");
       setUsername("");
       setMessage("User created successfully");
@@ -41,7 +41,7 @@ export default function Users() {
     }
 
     try {
-      await axios.patch(`${BASE_URL}/${selectedUser.id}`, {
+      await axios.patch(`${BASE_URL}/users/${selectedUser.id}`, {
         email: updatedEmail,
         username: updatedUsername
       });
@@ -57,7 +57,7 @@ export default function Users() {
 
   const deleteUser = async (id) => {
     try {
-      await axios.delete(`${BASE_URL}/${id}`);
+      await axios.delete(`${BASE_URL}/users/${id}`);
       setMessage("User deleted successfully");
       setSelectedUser(null);
       fetchAllUsers();
@@ -69,7 +69,7 @@ export default function Users() {
 
   const fetchAllUsers = async () => {
     try {
-      const res = await axios.get(BASE_URL);
+      const res = await axios.get(`${BASE_URL}/users/`);
       console.log("Users response:", res.data);
       setUsers(Array.isArray(res.data) ? res.data : []);
     } catch (err) {

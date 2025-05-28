@@ -7,7 +7,7 @@ if (!process.env.REACT_APP_BASE_URL) {
 }
 
 // Dynamic BASE_URL: works in dev and prod
-const BASE_URL = process.env.REACT_APP_BASE_URL + "/exercises";
+const BASE_URL = process.env.REACT_APP_BASE_URL;
 
 export default function Exercises() {
   const [exercises, setExercises] = useState([]);
@@ -32,7 +32,7 @@ export default function Exercises() {
 
   const fetchAll = async () => {
     try {
-      const res = await axios.get(BASE_URL + "/");
+      const res = await axios.get(`${BASE_URL}/exercises/`);
       setExercises(res.data);
     } catch (err) {
       console.error(err);
@@ -41,7 +41,7 @@ export default function Exercises() {
 
   const fetchGrouped = async () => {
     try {
-      const res = await axios.get(BASE_URL + "/categorized");
+      const res = await axios.get(`${BASE_URL}/exercises/categorized`);
       setGroupedExercises(res.data);
     } catch (err) {
       console.error("Failed to fetch categorized exercises", err);
@@ -50,7 +50,7 @@ export default function Exercises() {
 
   const fetchCategories = async () => {
     try {
-      const res = await axios.get(BASE_URL + "/categories");
+      const res = await axios.get(`${BASE_URL}/exercises/categories`);
       setCategories(res.data);
       if (res.data.length > 0) setSelectedCategory(res.data[0]);
     } catch (err) {
@@ -60,7 +60,7 @@ export default function Exercises() {
 
   const createExercise = async () => {
     try {
-      await axios.post(BASE_URL + "/", {
+      await axios.post(`${BASE_URL}/exercises/`, {
         name,
         description,
         category: selectedCategory,
@@ -83,7 +83,7 @@ export default function Exercises() {
 
   const updateExercise = async () => {
     try {
-      await axios.patch(`${BASE_URL}/${exerciseId}`, {
+      await axios.patch(`${BASE_URL}/exercises/${exerciseId}`, {
         name: updatedName,
         description: updatedDescription,
       });
@@ -99,7 +99,7 @@ export default function Exercises() {
 
   const deleteExercise = async () => {
     try {
-      await axios.delete(`${BASE_URL}/exercise_id/${exerciseId}`);
+      await axios.delete(`${BASE_URL}/exercises/exercise_id/${exerciseId}`);
       setDeleteMessage("✅ Deleted successfully!");
       fetchAll();
       fetchGrouped();

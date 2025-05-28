@@ -88,12 +88,12 @@ def make_logged_exercise():
 def setup_user_and_exercise_api(client):
     def _setup(username="testuser", email="test@example.com", exercise_name="Squat", category="Quads"):
         # Create user
-        client.post("/users/", json={"email": email, "username": username})
+        client.post("/api/users/", json={"email": email, "username": username})
 
         # Check if exercise exists, if not, create
-        existing_exercises = client.get("/exercises/").json()
+        existing_exercises = client.get("/api/exercises/").json()
         if not any(e["name"] == exercise_name for e in existing_exercises):
-            client.post("/exercises/", json={
+            client.post("/api/exercises/", json={
                 "name": exercise_name,
                 "primary_muscles": ["quads", "glutes"],
                 "category": category
@@ -112,18 +112,18 @@ def setup_user_and_exercise_api(client):
 def setup_logged_workout_api(client):
     def _setup(username="logapiuser", email="logapi@example.com", exercise_name="Row", category="Pull"):
         # Create user and exercise
-        client.post("/users/", json={"email": email, "username": username})
+        client.post("/api/users/", json={"email": email, "username": username})
 
-        existing_exercises = client.get("/exercises/").json()
+        existing_exercises = client.get("/api/exercises/").json()
         if not any(e["name"] == exercise_name for e in existing_exercises):
-            client.post("/exercises/", json={
+            client.post("/api/exercises/", json={
                 "name": exercise_name,
                 "primary_muscles": ["back"],
                 "category": category
             })
 
         # Create a workout with one logged exercise
-        resp = client.post("/workouts/", json={
+        resp = client.post("/api/workouts/", json={
             "username": username,
             "notes": "Back day",
             "logged_exercises": [{
@@ -144,7 +144,7 @@ def setup_logged_workout_api(client):
 @pytest.fixture
 def create_user_api(client):
     def _create(username="apiuser", email="apiuser@example.com"):
-        response = client.post("/users/", json={"email": email, "username": username})
+        response = client.post("/api/users/", json={"email": email, "username": username})
         assert response.status_code == 200
         return response.json()
     return _create

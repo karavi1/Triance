@@ -2,7 +2,7 @@ import pytest
 from uuid import UUID, uuid4
 
 def test_create_exercise(client):
-    response = client.post("/exercises/", json={
+    response = client.post("/api/exercises/", json={
         "name": "Bench Press",
         "primary_muscles": ["chest", "triceps"],
         "secondary_muscles": ["shoulders"],
@@ -17,7 +17,7 @@ def test_create_exercise(client):
     assert isinstance(UUID(data["id"]), UUID)
 
 def test_create_exercise_minimal_fields(client):
-    response = client.post("/exercises/", json={
+    response = client.post("/api/exercises/", json={
         "name": "Lunge",
         "primary_muscles": ["quads"],
         "category": "Quads"
@@ -32,7 +32,7 @@ def test_create_exercise_minimal_fields(client):
 
 def test_get_exercise_by_id(client):
     # Create exercise
-    response = client.post("/exercises/", json={
+    response = client.post("/api/exercises/", json={
         "name": "Squat",
         "primary_muscles": ["quads", "glutes"],
         "category": "Quads"
@@ -40,28 +40,28 @@ def test_get_exercise_by_id(client):
     exercise_id = response.json()["id"]
 
     # Fetch by ID
-    get_response = client.get(f"/exercises/{exercise_id}")
+    get_response = client.get(f"/api/exercises/{exercise_id}")
     assert get_response.status_code == 200
     assert get_response.json()["name"] == "Squat"
 
 def test_get_exercise_by_id_not_found(client):
-    response = client.get(f"/exercises/{uuid4()}")
+    response = client.get(f"/api/exercises/{uuid4()}")
     assert response.status_code == 404
     assert response.json()["detail"] == "Exercise not found"
 
 def test_get_all_exercises(client):
-    client.post("/exercises/", json={
+    client.post("/api/exercises/", json={
         "name": "Deadlift",
         "primary_muscles": ["back", "glutes"],
         "category": "Pull"
     })
-    client.post("/exercises/", json={
+    client.post("/api/exercises/", json={
         "name": "Overhead Press",
         "primary_muscles": ["shoulders"],
         "category": "Push"
     })
 
-    response = client.get("/exercises/")
+    response = client.get("/api/exercises/")
     assert response.status_code == 200
     exercises = response.json()
     assert isinstance(exercises, list)
@@ -70,23 +70,23 @@ def test_get_all_exercises(client):
     assert "Overhead Press" in names
 
 def test_delete_exercise(client):
-    response = client.post("/exercises/", json={
+    response = client.post("/api/exercises/", json={
         "name": "Barbell Row",
         "primary_muscles": ["back"],
         "category": "Pull"
     })
     exercise_id = response.json()["id"]
 
-    delete_response = client.delete(f"/exercises/{exercise_id}")
+    delete_response = client.delete(f"/api/exercises/{exercise_id}")
     assert delete_response.status_code == 200
     assert delete_response.json() is True
 
     # Confirm it's gone
-    get_response = client.get(f"/exercises/{exercise_id}")
+    get_response = client.get(f"/api/exercises/{exercise_id}")
     assert get_response.status_code == 404
 
 def test_delete_exercise_not_found(client):
-    response = client.delete(f"/exercises/{uuid4()}")
+    response = client.delete(f"/api/exercises/{uuid4()}")
     assert response.status_code == 404
     assert response.json()["detail"] == "Exercise not found"
 
@@ -97,22 +97,22 @@ def test_create_duplicate_exercise(client):
         "category": "Pull"
     }
 
-    first = client.post("/exercises/", json=exercise_data)
+    first = client.post("/api/exercises/", json=exercise_data)
     assert first.status_code == 200
 
-    second = client.post("/exercises/", json=exercise_data)
+    second = client.post("/api/exercises/", json=exercise_data)
     assert second.status_code == 409
     assert "already exists" in second.json()["detail"]
 
 def test_update_exercise(client):
-    create_resp = client.post("/exercises/", json={
+    create_resp = client.post("/api/exercises/", json={
         "name": "Cable Row",
         "primary_muscles": ["back"],
         "category": "Pull"
     })
     exercise_id = create_resp.json()["id"]
 
-    patch_resp = client.patch(f"/exercises/{exercise_id}", json={
+    patch_resp = client.patch(f"/api/exercises/{exercise_id}", json={
         "description": "Updated description"
     })
 
@@ -125,7 +125,7 @@ def test_create_batch_exercises(client):
         {"name": "Plank_Batch1", "primary_muscles": ["core"], "category": "Custom"}
     ]
 
-    response = client.post("/exercises/batch", json=payload)
+    response = client.post("/api/exercises/batch", json=payload)
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, list), f"Unexpected response: {data}"

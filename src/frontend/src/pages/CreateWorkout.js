@@ -43,7 +43,7 @@ export default function CreateWorkout() {
   });
 
   useEffect(() => {
-    axios.get(`${BASE_URL}/users`)
+    axios.get(`${BASE_URL}/users/`)
       .then((res) => setUsers(res.data))
       .catch((err) => console.error("Error fetching users:", err));
 

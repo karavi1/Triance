@@ -4,7 +4,7 @@ from uuid import uuid4
 def test_create_workout(client, setup_user_and_exercise_api):
     setup_user_and_exercise_api()
 
-    response = client.post("/workouts/", json={
+    response = client.post("/api/workouts/", json={
         "username": "testuser",
         "notes": "Leg day",
         "logged_exercises": [{
@@ -21,7 +21,7 @@ def test_create_workout(client, setup_user_and_exercise_api):
 def test_get_workout_by_id(client, setup_user_and_exercise_api):
     setup_user_and_exercise_api()
 
-    resp = client.post("/workouts/", json={
+    resp = client.post("/api/workouts/", json={
         "username": "testuser",
         "notes": "Strength",
         "logged_exercises": [{
@@ -31,12 +31,12 @@ def test_get_workout_by_id(client, setup_user_and_exercise_api):
     })
     workout_id = resp.json()["id"]
 
-    res = client.get(f"/workouts/{workout_id}")
+    res = client.get(f"/api/workouts/{workout_id}")
     assert res.status_code == 200
     assert res.json()["id"] == workout_id
 
 def test_get_workout_by_id_not_found(client):
-    res = client.get(f"/workouts/{uuid4()}")
+    res = client.get(f"/api/workouts/{uuid4()}")
     assert res.status_code == 404
     assert res.json()["detail"] == "Workout not found"
 
@@ -44,7 +44,7 @@ def test_get_all_workouts(client, setup_user_and_exercise_api):
     setup_user_and_exercise_api()
 
     for _ in range(2):
-        client.post("/workouts/", json={
+        client.post("/api/workouts/", json={
             "username": "testuser",
             "logged_exercises": [{
                 "name": "Squat",
@@ -52,7 +52,7 @@ def test_get_all_workouts(client, setup_user_and_exercise_api):
             }]
         })
 
-    res = client.get("/workouts/")
+    res = client.get("/api/workouts/")
     assert res.status_code == 200
     assert isinstance(res.json(), list)
     assert len(res.json()) >= 2
@@ -60,7 +60,7 @@ def test_get_all_workouts(client, setup_user_and_exercise_api):
 def test_delete_workout(client, setup_user_and_exercise_api):
     setup_user_and_exercise_api()
 
-    resp = client.post("/workouts/", json={
+    resp = client.post("/api/workouts/", json={
         "username": "testuser",
         "logged_exercises": [{
             "name": "Squat",
@@ -69,22 +69,22 @@ def test_delete_workout(client, setup_user_and_exercise_api):
     })
     workout_id = resp.json()["id"]
 
-    del_resp = client.delete(f"/workouts/{workout_id}")
+    del_resp = client.delete(f"/api/workouts/{workout_id}")
     assert del_resp.status_code == 204
     assert del_resp.text == ""
 
-    get_resp = client.get(f"/workouts/{workout_id}")
+    get_resp = client.get(f"/api/workouts/{workout_id}")
     assert get_resp.status_code == 404
 
 def test_delete_workout_not_found(client):
-    res = client.delete(f"/workouts/{uuid4()}")
+    res = client.delete(f"/api/workouts/{uuid4()}")
     assert res.status_code == 404
     assert res.json()["detail"] == "Workout not found"
 
 def test_get_latest_workout(client, setup_user_and_exercise_api):
     setup_user_and_exercise_api()
 
-    client.post("/workouts/", json={
+    client.post("/api/workouts/", json={
         "username": "testuser",
         "notes": "Earlier workout",
         "logged_exercises": [{
@@ -93,7 +93,7 @@ def test_get_latest_workout(client, setup_user_and_exercise_api):
         }]
     })
 
-    client.post("/workouts/", json={
+    client.post("/api/workouts/", json={
         "username": "testuser",
         "notes": "Most recent workout",
         "logged_exercises": [{
@@ -102,14 +102,14 @@ def test_get_latest_workout(client, setup_user_and_exercise_api):
         }]
     })
 
-    res = client.get("/workouts/user/testuser/latest")
+    res = client.get("/api/workouts/user/testuser/latest")
     assert res.status_code == 200
     assert res.json()["notes"] == "Most recent workout"
 
 def test_api_get_latest_workout_by_type(client, setup_user_and_exercise_api):
     setup_user_and_exercise_api(username="apitypetester", email="apitype@example.com", exercise_name="Deadlift", category="Pull")
 
-    client.post("/workouts/", json={
+    client.post("/api/workouts/", json={
         "username": "apitypetester",
         "notes": "Pull workout",
         "workout_type": "Pull",
@@ -119,7 +119,7 @@ def test_api_get_latest_workout_by_type(client, setup_user_and_exercise_api):
         }]
     })
 
-    client.post("/workouts/", json={
+    client.post("/api/workouts/", json={
         "username": "apitypetester",
         "notes": "Latest Pull",
         "workout_type": "Pull",
@@ -129,14 +129,14 @@ def test_api_get_latest_workout_by_type(client, setup_user_and_exercise_api):
         }]
     })
 
-    res = client.get("/workouts/user/apitypetester/latest/Pull")
+    res = client.get("/api/workouts/user/apitypetester/latest/Pull")
     assert res.status_code == 200
     assert res.json()["notes"] == "Latest Pull"
 
 def test_api_latest_workout_by_type_none_for_type(client, setup_user_and_exercise_api):
     setup_user_and_exercise_api(username="apitypetester", email="apitype@example.com", exercise_name="Deadlift", category="Pull")
 
-    client.post("/workouts/", json={
+    client.post("/api/workouts/", json={
         "username": "apitypetester",
         "notes": "Only Push",
         "workout_type": "Push",
@@ -146,12 +146,12 @@ def test_api_latest_workout_by_type_none_for_type(client, setup_user_and_exercis
         }]
     })
 
-    res = client.get("/workouts/user/apitypetester/latest/Pull")
+    res = client.get("/api/workouts/user/apitypetester/latest/Pull")
     assert res.status_code == 404
     assert res.json()["detail"] == "No workouts of this type found for this user"
 
 def test_api_latest_workout_by_type_invalid_user(client):
-    res = client.get("/workouts/user/nonexistentuser/latest/Push")
+    res = client.get("/api/workouts/user/nonexistentuser/latest/Push")
     assert res.status_code == 404
     assert res.json()["detail"] == "No workouts of this type found for this user"
 
@@ -159,7 +159,7 @@ def test_api_latest_workout_by_type_valid_type_other_user(client, setup_user_and
     setup_user_and_exercise_api(username="user1", email="user1@example.com", exercise_name="Deadlift", category="Pull")
     setup_user_and_exercise_api(username="user2", email="user2@example.com", exercise_name="Deadlift", category="Pull")
 
-    client.post("/workouts/", json={
+    client.post("/api/workouts/", json={
         "username": "user2",
         "notes": "Quads for user2",
         "workout_type": "Quads",
@@ -169,7 +169,7 @@ def test_api_latest_workout_by_type_valid_type_other_user(client, setup_user_and
         }]
     })
 
-    res = client.get("/workouts/user/user1/latest/Quads")
+    res = client.get("/api/workouts/user/user1/latest/Quads")
     assert res.status_code == 404
     assert res.json()["detail"] == "No workouts of this type found for this user"
 
@@ -178,7 +178,7 @@ def test_api_update_workout(client, setup_user_and_exercise_api):
     setup_user_and_exercise_api(username="patchuser", email="patch@example.com", exercise_name="Deadlift", category="Pull")
 
     # Create a workout
-    create_resp = client.post("/workouts/", json={
+    create_resp = client.post("/api/workouts/", json={
         "username": "patchuser",
         "notes": "Initial Workout",
         "workout_type": "Pull",
@@ -207,7 +207,7 @@ def test_api_update_workout(client, setup_user_and_exercise_api):
         ]
     }
 
-    patch_resp = client.patch(f"/workouts/{workout_id}", json=update_payload)
+    patch_resp = client.patch(f"/api/workouts/{workout_id}", json=update_payload)
     assert patch_resp.status_code == 200
     data = patch_resp.json()
 
@@ -221,7 +221,7 @@ def test_api_update_workout(client, setup_user_and_exercise_api):
 def test_api_workout_frequency_by_month(client, setup_user_and_exercise_api):
     setup_user_and_exercise_api(username="frequser", email="freq@example.com", exercise_name="Squat", category="Quads")
 
-    client.post("/workouts/", json={
+    client.post("/api/workouts/", json={
         "username": "frequser",
         "notes": "Old workout",
         "created_time": "2024-03-01T10:00",
@@ -232,7 +232,7 @@ def test_api_workout_frequency_by_month(client, setup_user_and_exercise_api):
         }]
     })
 
-    client.post("/workouts/", json={
+    client.post("/api/workouts/", json={
         "username": "frequser",
         "notes": "Recent workout",
         "created_time": "2024-05-01T10:00",
@@ -243,7 +243,7 @@ def test_api_workout_frequency_by_month(client, setup_user_and_exercise_api):
         }]
     })
 
-    res = client.get("/workouts/user/frequser/frequency/month")
+    res = client.get("/api/workouts/user/frequser/frequency/month")
     assert res.status_code == 200
     frequency = res.json()
     assert frequency > 0
@@ -252,7 +252,7 @@ def test_api_workout_frequency_by_type(client, setup_user_and_exercise_api):
     setup_user_and_exercise_api(username="typeuser", email="type@example.com", exercise_name="Bench Press", category="Push")
 
     for _ in range(3):
-        client.post("/workouts/", json={
+        client.post("/api/workouts/", json={
             "username": "typeuser",
             "workout_type": "Push",
             "logged_exercises": [{
@@ -261,14 +261,14 @@ def test_api_workout_frequency_by_type(client, setup_user_and_exercise_api):
             }]
         })
 
-    res = client.get("/workouts/user/typeuser/frequency/Push")
+    res = client.get("/api/workouts/user/typeuser/frequency/Push")
     assert res.status_code == 200
     assert res.json() == 3
 
 def test_api_workout_frequency_by_type_zero(client, setup_user_and_exercise_api):
     setup_user_and_exercise_api(username="typeuser2", email="type2@example.com", exercise_name="Deadlift", category="Pull")
 
-    client.post("/workouts/", json={
+    client.post("/api/workouts/", json={
         "username": "typeuser2",
         "workout_type": "Pull",
         "logged_exercises": [{
@@ -277,6 +277,6 @@ def test_api_workout_frequency_by_type_zero(client, setup_user_and_exercise_api)
         }]
     })
 
-    res = client.get("/workouts/user/typeuser2/frequency/Push")
+    res = client.get("/api/workouts/user/typeuser2/frequency/Push")
     assert res.status_code == 200
     assert res.json() == 0
