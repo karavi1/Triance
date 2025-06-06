@@ -1,23 +1,47 @@
 import os
+import json
+import boto3
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+def get_db_credentials():
+    if os.getenv("TESTING", "0") == "1":
+        return {
+            "username": "test_user",
+            "password": "test_pass"
+        }
+    
+    secret_name = os.getenv("DB_SECRET_NAME")
+    region_name = os.getenv("AWS_REGION", "us-east-2")
 
-if not DATABASE_URL:
-    DB_USER = os.getenv("DB_USER")
-    DB_PASSWORD = os.getenv("DB_PASSWORD")
-    DB_HOST = os.getenv("DB_HOST", "localhost")
-    DB_PORT = os.getenv("DB_PORT", "3306")
-    DB_NAME = os.getenv("DB_NAME")
+    if not secret_name:
+        raise ValueError("DB_SECRET_NAME environment variable is required.")
 
-    if not all([DB_USER, DB_PASSWORD, DB_NAME]):
-        raise ValueError("Missing one or more required DB environment variables.")
+    client = boto3.client("secretsmanager", region_name=region_name)
+    response = client.get_secret_value(SecretId=secret_name)
+    secret = json.loads(response["SecretString"])
 
-    DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    return {
+        "username": secret["username"],
+        "password": secret["password"]
+    }
+
+secrets = get_db_credentials()
+
+DB_HOST = os.getenv("DB_HOST", "localhost")
+DB_PORT = os.getenv("DB_PORT", "3306")
+DB_NAME = os.getenv("DB_NAME")
+
+if not DB_NAME:
+    raise ValueError("DB_NAME must be set in the environment.")
+
+DATABASE_URL = (
+    f"mysql+pymysql://{secrets['username']}:{secrets['password']}"
+    f"@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+)
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

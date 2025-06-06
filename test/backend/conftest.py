@@ -1,4 +1,6 @@
 import os
+os.environ["TESTING"] = "1"
+
 import tempfile
 import pytest
 from fastapi.testclient import TestClient
@@ -11,6 +13,7 @@ from src.backend.main import app
 from src.backend.models.enums import ExerciseGroup
 from src.backend.schemas.user import UserCreate
 from src.backend.schemas.exercise import ExerciseCreate
+
 
 def create_temp_db_engine():
     fd, path = tempfile.mkstemp(suffix=".db")
