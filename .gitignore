@@ -24,3 +24,5 @@ env/
 
 # Environment variables
 .env
+
+**/.aws/
