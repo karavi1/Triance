@@ -5,7 +5,6 @@ if (!process.env.REACT_APP_BASE_URL) {
   throw new Error("REACT_APP_BASE_URL is not defined in the environment");
 }
 
-// Dynamic BASE_URL: works in dev and prod
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 
 export default function Users() {
@@ -23,11 +22,11 @@ export default function Users() {
 
   const createNewUser = async () => {
     try {
-      await axios.post(`${BASE_URL}/users/`, { email, username });
+      const res = await axios.post(`${BASE_URL}/users/`, { email, username });
+      setUsers((prev) => [...prev, res.data]); // Append new user to list
       setEmail("");
       setUsername("");
       setMessage("User created successfully");
-      fetchAllUsers();
     } catch (err) {
       setMessage("Failed to create new user");
       console.error(err);
@@ -41,14 +40,18 @@ export default function Users() {
     }
 
     try {
-      await axios.patch(`${BASE_URL}/users/${selectedUser.id}`, {
+      const res = await axios.patch(`${BASE_URL}/users/${selectedUser.id}`, {
         email: updatedEmail,
-        username: updatedUsername
+        username: updatedUsername,
       });
+      setUsers((prev) =>
+        prev.map((user) =>
+          user.id === selectedUser.id ? res.data : user
+        )
+      );
       setUpdatedEmail("");
       setUpdatedUsername("");
       setMessage("User updated successfully");
-      fetchAllUsers();
     } catch (err) {
       setMessage("Failed to update user");
       console.error(err);
@@ -58,9 +61,9 @@ export default function Users() {
   const deleteUser = async (id) => {
     try {
       await axios.delete(`${BASE_URL}/users/${id}`);
-      setMessage("User deleted successfully");
+      setUsers((prev) => prev.filter((user) => user.id !== id));
       setSelectedUser(null);
-      fetchAllUsers();
+      setMessage("User deleted successfully");
     } catch (err) {
       setMessage("Failed to delete user");
       console.error(err);
@@ -70,16 +73,21 @@ export default function Users() {
   const fetchAllUsers = async () => {
     try {
       const res = await axios.get(`${BASE_URL}/users/`);
-      console.log("Users response:", res.data);
+      if (process.env.NODE_ENV === "development") {
+        console.log("Users response:", res.data);
+      }
       setUsers(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       setMessage("Failed to fetch users");
       console.error(err);
-      setUsers([]); // fallback to empty array
+      setUsers([]);
     }
   };
 
-  // Prefill form fields when selected user changes
+  useEffect(() => {
+    fetchAllUsers();
+  }, []);
+
   useEffect(() => {
     if (selectedUser) {
       setUpdatedUsername(selectedUser.username);
@@ -90,15 +98,10 @@ export default function Users() {
     }
   }, [selectedUser]);
 
-  useEffect(() => {
-    fetchAllUsers();
-  }, []);
-
   return (
     <div className="container mt-5 mb-5">
       <h2 className="mb-4">User Manager</h2>
 
-      {/* Message Alert */}
       {message && (
         <div className="alert alert-info alert-dismissible fade show" role="alert">
           {message}
@@ -143,19 +146,16 @@ export default function Users() {
             value={selectedUser?.id || ""}
             onChange={(e) => {
               const userId = e.target.value;
-              const user = Array.isArray(users)
-                ? users.find((u) => u.id === userId)
-                : null;
+              const user = users.find((u) => u.id === userId);
               setSelectedUser(user || null);
             }}
           >
             <option value="">Select a user to update</option>
-            {Array.isArray(users) &&
-              users.map((user) => (
-                <option key={user.id} value={user.id}>
-                  {user.username} — {user.email}
-                </option>
-              ))}
+            {users.map((user) => (
+              <option key={user.id} value={user.id}>
+                {user.username} — {user.email}
+              </option>
+            ))}
           </select>
         </div>
 
