@@ -61,17 +61,23 @@ export default function UpdateWorkout() {
   };
 
   const fetchWorkoutsByUser = async () => {
+    if (!username.trim()) {
+      showToast("Username is required to fetch workouts", "danger");
+      return;
+    }
+
     try {
       const res = await axios.get(`${BASE_URL}/workouts/user/${username}`);
       setWorkouts(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error("Failed to fetch workouts", err);
       setWorkouts([]);
+      showToast("Failed to fetch workouts", "danger");
     }
   };
 
   const handleSelectWorkout = (id) => {
-    const workout = workouts.find((w) => w.id === parseInt(id));
+    const workout = workouts.find((w) => w.id === id);
     if (!workout) return;
     const sortedLoggedExercises = Array.isArray(workout.logged_exercises)
       ? workout.logged_exercises.map((le) => ({
