@@ -33,10 +33,7 @@ secrets = get_db_credentials()
 
 DB_HOST = os.getenv("DB_HOST", "localhost")
 DB_PORT = os.getenv("DB_PORT", "3306")
-DB_NAME = os.getenv("DB_NAME")
-
-if not DB_NAME:
-    raise ValueError("DB_NAME must be set in the environment.")
+DB_NAME = "triance"
 
 DATABASE_URL = (
     f"mysql+pymysql://{secrets['username']}:{secrets['password']}"
