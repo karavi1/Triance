@@ -8,3 +8,5 @@ axios
 python-dateutil
 boto3
 streamlit
+pyjwt
+passlib[bcrypt]
