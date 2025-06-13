@@ -159,3 +159,12 @@ def create_user(db):
         return crud_user.create_user(db, user_in)
 
     return _create
+
+@pytest.fixture
+def auth_headers(client):
+    def _auth_headers(username="kaush", password="secret"):
+        response = client.post("/token", data={"username": username, "password": password})
+        assert response.status_code == 200
+        token = response.json()["access_token"]
+        return {"Authorization": f"Bearer {token}"}
+    return _auth_headers
