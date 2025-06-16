@@ -1,9 +1,12 @@
 import os
 import json
-import boto3
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
+
+USE_AWS = os.getenv("TESTING", "0") != "1"
+if USE_AWS:
+    import boto3
 
 load_dotenv()
 
@@ -13,7 +16,7 @@ def get_db_credentials():
             "username": "test_user",
             "password": "test_pass"
         }
-    
+
     secret_name = os.getenv("DB_SECRET_NAME")
     region_name = os.getenv("AWS_REGION", "us-east-2")
 
@@ -29,11 +32,18 @@ def get_db_credentials():
         "password": secret["password"]
     }
 
-secrets = get_db_credentials()
+try:
+    secrets = get_db_credentials()
+except Exception as e:
+    if os.getenv("TESTING", "0") == "1":
+        secrets = {"username": "test_user", "password": "test_pass"}
+    else:
+        raise RuntimeError(f"Failed to load DB credentials: {e}")
 
+# DB config
 DB_HOST = os.getenv("DB_HOST", "localhost")
 DB_PORT = os.getenv("DB_PORT", "3306")
-DB_NAME = "triance"
+DB_NAME = os.getenv("DB_NAME", "triance")
 
 DATABASE_URL = (
     f"mysql+pymysql://{secrets['username']}:{secrets['password']}"

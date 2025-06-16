@@ -24,9 +24,10 @@ app = FastAPI(
 
 load_dotenv()
 
-SECRET_KEY = os.getenv("SECRET_KEY")
-ALGORITHM = os.getenv("ALGORITHM")
+SECRET_KEY = os.getenv("SECRET_KEY", "testsecret")
+ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
 
 fake_users_db = {
     "johndoe": {
@@ -45,7 +46,7 @@ fake_users_db = {
     }
 }
 
-pwd_context = CryptContext(schemes=[os.getenv("SCHEME")], deprecated="auto")
+pwd_context = CryptContext(schemes=[os.getenv("SCHEME", "bcrypt")], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 class Token(BaseModel):
