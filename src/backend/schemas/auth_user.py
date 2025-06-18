@@ -9,24 +9,17 @@ class AuthUserBase(BaseModel):
     disabled: Optional[bool] = None
 
 class AuthUserCreate(AuthUserBase):
-    password: str  # raw password input
+    password: str
 
 class AuthUserUpdate(BaseModel):
     email: Optional[str] = None
+    username: Optional[str] = None
     full_name: Optional[str] = None
     disabled: Optional[bool] = None
     password: Optional[str] = None
 
 class AuthUserOut(AuthUserBase):
     id: UUID
-
-    model_config = {
-        "from_attributes": True
-    }
-
-class AuthUserInDB(AuthUserBase):
-    id: UUID
-    hashed_password: str
 
     model_config = {
         "from_attributes": True

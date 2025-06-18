@@ -6,7 +6,6 @@ from src.backend.schemas.auth_user import (
     AuthUserCreate,
     AuthUserUpdate,
     AuthUserOut,
-    AuthUserInDB,
     Token,
     TokenData,
 )
@@ -49,19 +48,6 @@ def test_auth_user_out():
     assert user.id == user_id
     assert user.username == "ay"
     assert user.disabled is False
-
-
-def test_auth_user_in_db():
-    user_id = uuid4()
-    user = AuthUserInDB(
-        id=user_id,
-        username="admin",
-        email="admin@example.com",
-        full_name="Admin",
-        disabled=True,
-        hashed_password="hashed_pw"
-    )
-    assert user.hashed_password == "hashed_pw"
 
 
 def test_token_model():
