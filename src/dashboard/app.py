@@ -100,49 +100,7 @@ else:
 
 st.divider()
 
-# === Section 4: Triance Database Table Metrics ===
-st.header("4. Triance Database Table Metrics")
-
-try:
-    db = SessionLocal()
-
-    def count_rows(model):
-        return db.query(func.count(model.id)).scalar()
-
-    with st.expander("📊 Table Row Counts"):
-        st.metric("Users", count_rows(User))
-        st.metric("Exercises", count_rows(Exercise))
-        st.metric("Workouts", count_rows(Workout))
-        st.metric("Logged Exercises", count_rows(LoggedExercise))
-        st.metric("Logged Exercise Sets", count_rows(LoggedExerciseSet))
-
-    latest_user = db.query(User).order_by(User.created_at.desc()).first()
-    st.subheader("Latest Registered User")
-    if latest_user:
-        st.write(f"{latest_user.username} | Created At: {latest_user.created_at}")
-
-    st.divider()
-    st.subheader("📈 Daily Growth Trends")
-    def daily_growth(model, label):
-        data = db.query(
-            cast(model.created_at, Date).label("date"),
-            func.count(model.id)
-        ).group_by("date").order_by("date").all()
-
-        if data:
-            dates, counts = zip(*data)
-            df = pd.DataFrame({"date": dates, label: counts})
-            st.line_chart(df.set_index("date"))
-
-    daily_growth(User, "Users")
-    # daily_growth(Workout, "Workouts")
-
-except Exception as e:
-    st.error(f"Database access error: {e}")
-
-st.divider()
-
-# === Section 5: App Health Checks ===
+# === Section 4: App Health Checks ===
 st.header("5. Uptime Checks")
 
 BACKEND_URL = "https://triance.app/api/custom-docs"
@@ -157,6 +115,7 @@ except Exception as e:
 
 st.divider()
 
-# === Section 6: User Activity Logs ===
+# === Section 5: User Activity Logs ===
 st.header("6. User Event Logs (TODO)")
 st.info("Coming soon: Event logs based on user API activity")
+st.info("Need to implement some OLAP data warehousing/metrics")

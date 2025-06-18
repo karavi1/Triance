@@ -4,7 +4,7 @@ from dateutil.relativedelta import relativedelta
 from src.backend.crud import workout as crud_workout
 from src.backend.models.enums import ExerciseGroup
 from src.backend.schemas.workout import WorkoutCreateSimple, WorkoutUpdate
-from src.backend.schemas.user import UserCreate
+from src.backend.schemas.auth_user import AuthUserCreate
 from src.backend.schemas.exercise import ExerciseCreate
 from src.backend.crud import user as crud_user, exercise as crud_exercise
 
@@ -73,7 +73,7 @@ def test_get_last_workout(db, test_user, test_exercise, make_logged_exercise):
     assert latest.logged_exercises[0].sets[0].reps == 6
 
 def test_get_last_workout_no_workouts(db):
-    crud_user.create_user(db, UserCreate(email="noworkout@example.com", username="noworkout"))
+    crud_user.create_user(db, AuthUserCreate(email="noworkout@example.com", username="noworkout", password="abc"))
     latest = crud_workout.get_last_workout("noworkout", db)
     assert latest is None
 
@@ -141,18 +141,15 @@ def test_get_last_workout_by_type_no_matching_type(db, test_user, test_exercise,
     assert result is None
 
 def test_get_last_workout_by_type_for_different_user(db, make_logged_exercise):
-    # Setup two users
-    crud_user.create_user(db, UserCreate(email="user1@example.com", username="user1"))
-    crud_user.create_user(db, UserCreate(email="user2@example.com", username="user2"))
+    crud_user.create_user(db, AuthUserCreate(email="user1@example.com", username="user1", password="a"))
+    crud_user.create_user(db, AuthUserCreate(email="user2@example.com", username="user2", password="b"))
 
-    # Add exercise for user2
     crud_exercise.create_exercise(db, ExerciseCreate(
         name="Deadlift",
         primary_muscles=["back"],
         category=ExerciseGroup.PULL
     ))
 
-    # Create workout for user2 only
     crud_workout.create_workout(db, WorkoutCreateSimple(
         username="user2",
         notes="Quads day for user2",
@@ -162,7 +159,6 @@ def test_get_last_workout_by_type_for_different_user(db, make_logged_exercise):
 
     result = crud_workout.get_last_workout_based_on_username_and_type("user1", "Quads", db)
     assert result is None
-
 
 def test_calculate_num_workouts_by_type(db, test_user, test_exercise, make_logged_exercise):
     crud_workout.create_workout(db, WorkoutCreateSimple(
@@ -202,7 +198,7 @@ def test_calculate_num_workouts_by_month(db, test_user, test_exercise, make_logg
         logged_exercises=[make_logged_exercise("Deadlift", [(8, 100.0)])],
         created_time=datetime.now(timezone.utc) - relativedelta(months=2)
     ))
-        
+
     crud_workout.create_workout(db, WorkoutCreateSimple(
         username=test_user.username,
         notes="Pull 1",
@@ -218,7 +214,7 @@ def test_calculate_num_workouts_by_month(db, test_user, test_exercise, make_logg
         logged_exercises=[make_logged_exercise("Deadlift", [(8, 100.0)])],
         created_time=datetime.now(timezone.utc) - relativedelta(months=2)
     ))
-        
+
     crud_workout.create_workout(db, WorkoutCreateSimple(
         username=test_user.username,
         notes="Ham 1",

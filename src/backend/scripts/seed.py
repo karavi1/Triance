@@ -1,9 +1,13 @@
-from sqlalchemy.orm import Session
-from src.backend.database.configure import SessionLocal
-from src.backend.models import User, Exercise, Workout, LoggedExercise, LoggedExerciseSet
-from src.backend.models.enums import ExerciseGroup
+import os
 import uuid
 from datetime import datetime, timedelta, timezone
+from sqlalchemy.orm import Session
+from src.backend.database.configure import SessionLocal
+from src.backend.models.auth_user import AuthUser
+from src.backend.models.exercise import Exercise
+from src.backend.models.workout import Workout
+from src.backend.models.logged_exercise import LoggedExercise, LoggedExerciseSet
+from src.backend.models.enums import ExerciseGroup
 
 # Map of categories to exercises
 exercise_data = {
@@ -56,12 +60,10 @@ def populate_exercises(db: Session):
         except KeyError:
             print(f"Warning: Invalid ExerciseGroup '{category}'")
             continue
-
         for name, primary, secondary, description in exercises:
             if name in seen:
                 continue
             seen.add(name)
-
             exists = db.query(Exercise).filter(Exercise.name == name).first()
             if not exists:
                 ex = Exercise(
@@ -165,58 +167,54 @@ sample_users = [
 
 def seed_users_and_workouts(db: Session):
     for user_data in sample_users:
-        user = db.query(User).filter(User.username == user_data["username"]).first()
+        user = db.query(AuthUser).filter(AuthUser.username == user_data["username"]).first()
         if not user:
-            user = User(username=user_data["username"], email=user_data["email"])
+            user = AuthUser(username=user_data["username"], email=user_data["email"], hashed_password="notused", disabled=False)
             db.add(user)
             db.commit()
+            db.refresh(user)
             print(f"Created user: {user.username}")
         else:
             print(f"User '{user.username}' already exists.")
-
         for workout_data in user_data["workouts"]:
-            existing_workout = db.query(Workout).filter(
+            existing = db.query(Workout).filter(
                 Workout.user_id == user.id,
                 Workout.notes == workout_data["notes"],
                 Workout.created_time == workout_data["created_time"]
             ).first()
-
-            if existing_workout:
+            if existing:
                 print(f"Workout '{workout_data['notes']}' for {user.username} already exists.")
                 continue
-
+            print(f"Seeding workout for user {user.username}")
             workout = Workout(
                 id=uuid.uuid4(),
                 user_id=user.id,
                 notes=workout_data["notes"],
                 created_time=workout_data["created_time"],
-                workout_type=ExerciseGroup(workout_data["workout_type"])
+                workout_type = ExerciseGroup(workout_data["workout_type"])
             )
             db.add(workout)
             db.flush()
-
+            print(f"Workout ID: {workout.id}")
             for name, sets, reps, weight in workout_data["logged_exercises"]:
                 exercise = db.query(Exercise).filter(Exercise.name == name).first()
                 if exercise:
-                    logged_exercise = LoggedExercise(
+                    le = LoggedExercise(
                         id=uuid.uuid4(),
                         workout_id=workout.id,
                         exercise_id=exercise.id,
                     )
-                    db.add(logged_exercise)
+                    db.add(le)
                     db.flush()
-
                     for i in range(sets):
-                        set_entry = LoggedExerciseSet(
-                            logged_exercise_id=logged_exercise.id,
+                        db.add(LoggedExerciseSet(
+                            logged_exercise_id=le.id,
                             set_number=i + 1,
                             reps=reps,
                             weight=weight
-                        )
-                        db.add(set_entry)
+                        ))
                 else:
                     print(f"Warning: Exercise '{name}' not found.")
-
             print(f"Seeded workout for {user.username}: {workout.notes}")
     db.commit()
 

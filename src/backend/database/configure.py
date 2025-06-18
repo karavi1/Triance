@@ -1,12 +1,9 @@
 import os
+import boto3
 import json
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
-
-USE_AWS = os.getenv("TESTING", "0") != "1"
-if USE_AWS:
-    import boto3
 
 load_dotenv()
 
