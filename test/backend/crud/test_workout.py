@@ -148,7 +148,7 @@ def test_get_last_workout_by_type_for_different_user(db, make_logged_exercise):
         name="Deadlift",
         primary_muscles=["back"],
         category=ExerciseGroup.PULL
-    ))
+    ), None)
 
     crud_workout.create_workout(db, WorkoutCreateSimple(
         username="user2",

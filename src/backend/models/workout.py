@@ -19,7 +19,6 @@ class Workout(Base):
     logged_exercises: Mapped[List[LoggedExercise]] = relationship("LoggedExercise", cascade="all, delete-orphan")
     workout_type: Mapped[ExerciseGroup] = mapped_column(SQLEnum(ExerciseGroup), nullable=True)
 
-    # Optional: define reverse relationship for user if needed
     user: Mapped[AuthUser] = relationship("AuthUser", backref="workouts")
 
     def __repr__(self):

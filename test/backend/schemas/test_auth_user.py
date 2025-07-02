@@ -15,19 +15,30 @@ def test_auth_user_base_valid():
     assert user.username == "kaushik"
     assert user.email == "k@example.com"
     assert user.disabled is False
+    assert user.is_admin is False
 
 
 def test_auth_user_base_optional_fields():
     user = AuthUserBase(username="ay")
+    assert user.username == "ay"
     assert user.email is None
     assert user.full_name is None
     assert user.disabled is None
+    assert user.is_admin is False
 
 
 def test_auth_user_create_valid():
     user = AuthUserCreate(username="ay", password="secret")
     assert user.password == "secret"
     assert user.username == "ay"
+    assert user.is_admin is False
+
+
+def test_auth_admin_user_create_valid():
+    user = AuthUserCreate(username="ay", password="secret", is_admin=True)
+    assert user.password == "secret"
+    assert user.username == "ay"
+    assert user.is_admin is True
 
 
 def test_auth_user_create_missing_password():

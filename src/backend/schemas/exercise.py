@@ -20,6 +20,10 @@ class ExerciseUpdate(BaseModel):
     secondary_muscles: Optional[List[str]] = None
     description: Optional[str] = None
 
+    model_config = {
+        "extra": "forbid"
+    }
+
 class ExerciseOut(BaseModel):
     id: UUID
     name: str
@@ -27,9 +31,11 @@ class ExerciseOut(BaseModel):
     primary_muscles: List[str]
     secondary_muscles: Optional[List[str]] = None
     description: Optional[str] = None
+    user_id: Optional[UUID] = None
+    username: Optional[str] = None
 
     model_config = {
-        "from_attributes": True  # Required to serialize SQLAlchemy models
+        "from_attributes": True
     }
 
 class ExerciseSummaryOut(BaseModel):

@@ -77,6 +77,6 @@ def test_get_all_users_authenticated(client, auth_headers, create_user_api):
     password = "mypassword"
     create_user_api(username=username, email=f"{username}@example.com", password=password)
     headers = auth_headers(username=username, password=password)
-    response = client.get("/api/users/auth/", headers=headers)
+    response = client.get("/api/users/all/auth/", headers=headers)
     assert response.status_code == 200
     assert isinstance(response.json(), list)

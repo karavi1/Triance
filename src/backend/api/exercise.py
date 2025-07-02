@@ -1,12 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from uuid import UUID
-from typing import List
-
+from typing import List, Annotated
 from src.backend.database.configure import get_db
+from src.backend.models.auth_user import AuthUser
 from src.backend.models.enums import ExerciseGroup
 from src.backend.models.exercise import Exercise
 from src.backend.schemas.exercise import ExerciseCreate, ExerciseOut, ExerciseUpdate
+from src.backend.auth.util import (
+    get_current_active_user
+)
 from src.backend.crud.exercise import (
     create_batch_exercise,
     create_exercise,
@@ -42,15 +45,15 @@ def get_exercise_by_id_handler(exercise_id: UUID, db: Session = Depends(get_db))
     return exercise
 
 @router.post("/", response_model=ExerciseOut)
-def create_exercise_handler(exercise: ExerciseCreate, db: Session = Depends(get_db)):
+def create_exercise_handler(exercise: ExerciseCreate, db: Session = Depends(get_db), current_user: AuthUser = Depends(get_current_active_user)):
     existing = db.query(Exercise).filter(Exercise.name == exercise.name).first()
     if existing:
         raise HTTPException(status_code=409, detail=f"Exercise '{exercise.name}' already exists")
-    return create_exercise(db, exercise)
+    return create_exercise(db, exercise, current_user)
 
 @router.post("/batch", response_model=List[ExerciseOut])
-def create_batch_exercise_handler(exercises: List[ExerciseCreate], db: Session = Depends(get_db)):
-    return create_batch_exercise(db, exercises)
+def create_batch_exercise_handler(exercises: List[ExerciseCreate], db: Session = Depends(get_db), current_user: AuthUser = Depends(get_current_active_user)):
+    return create_batch_exercise(db, exercises, current_user)
 
 @router.patch("/{exercise_id}", response_model=ExerciseOut)
 def update_exercise_handler(exercise_id: UUID, updates: ExerciseUpdate, db: Session = Depends(get_db)):

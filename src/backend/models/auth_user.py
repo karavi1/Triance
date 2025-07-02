@@ -14,6 +14,7 @@ class AuthUser(Base):
     full_name: Mapped[Optional[str]] = mapped_column(String(255))
     disabled: Mapped[Optional[bool]] = mapped_column(Boolean, default=False)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
+    is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
 
     def __repr__(self):
         return f'AuthUser(id={self.id}, username="{self.username}", email="{self.email}", disabled={self.disabled})'
@@ -24,7 +25,8 @@ class AuthUser(Base):
             "username": self.username,
             "email": self.email,
             "full_name": self.full_name,
-            "disabled": self.disabled
+            "disabled": self.disabled,
+            "is_admin": self.is_admin
         }
 
 class Token(BaseModel):

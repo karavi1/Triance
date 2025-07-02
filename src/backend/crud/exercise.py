@@ -1,26 +1,32 @@
 from collections import defaultdict
+from fastapi import Depends
 from sqlalchemy.orm import Session
 from uuid import UUID
-from typing import List
+from typing import List, Annotated
+from src.backend.models.auth_user import AuthUser
 from src.backend.models.exercise import Exercise
 from src.backend.schemas.exercise import ExerciseCreate, ExerciseUpdate
 
-def create_exercise(db: Session, exercise_data: ExerciseCreate):
-    exercise = Exercise(**exercise_data.model_dump())
+def create_exercise(db: Session, exercise_data: ExerciseCreate, currentActiveUser: AuthUser):
+    exercise = Exercise(
+        **exercise_data.model_dump(exclude={"user_id"}),
+        user_id=currentActiveUser.id if currentActiveUser else None
+    )
     db.add(exercise)
     db.commit()
     db.refresh(exercise)
     return exercise
 
-def create_batch_exercise(db: Session, exercises_data: List[ExerciseCreate]):
+def create_batch_exercise(db: Session, exercises_data: List[ExerciseCreate], currentActiveUser: AuthUser):
     exercises_list = []
     for exercise_data in exercises_data:
-        # Check if exercise already exists by name
         existing = db.query(Exercise).filter(Exercise.name == exercise_data.name).first()
         if existing:
-            continue  # Skip duplicates (or collect if you want to return them too)
-
-        exercise = Exercise(**exercise_data.model_dump())
+            continue
+        exercise = Exercise(
+            **exercise_data.model_dump(exclude={"user_id"}),
+            user_id=currentActiveUser.id if currentActiveUser else None
+        )
         db.add(exercise)
         db.commit()
         db.refresh(exercise)

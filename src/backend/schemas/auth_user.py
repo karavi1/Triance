@@ -7,6 +7,7 @@ class AuthUserBase(BaseModel):
     email: Optional[str] = None
     full_name: Optional[str] = None
     disabled: Optional[bool] = None
+    is_admin: bool = False
 
 class AuthUserCreate(AuthUserBase):
     password: str
@@ -17,6 +18,7 @@ class AuthUserUpdate(BaseModel):
     full_name: Optional[str] = None
     disabled: Optional[bool] = None
     password: Optional[str] = None
+    is_admin: Optional[bool] = None
 
 class AuthUserOut(AuthUserBase):
     id: UUID

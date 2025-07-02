@@ -51,7 +51,7 @@ def get_all_users_handler(db: Session = Depends(get_db)):
     return get_all_users(db)
 
 
-@router.get("/auth/", response_model=List[AuthUserOut])
+@router.get("/all/auth/", response_model=List[AuthUserOut])
 def get_all_users_handler_with_auth(
     _: Annotated[AuthUser, Depends(get_current_active_user)],
     db: Session = Depends(get_db)

@@ -1,5 +1,5 @@
 import pytest
-from uuid import uuid4
+from uuid import uuid4, UUID
 from pydantic import ValidationError
 from src.backend.schemas.exercise import (
     ExerciseCreate,
@@ -8,6 +8,7 @@ from src.backend.schemas.exercise import (
     ExerciseSummaryOut
 )
 from src.backend.models.enums import ExerciseGroup
+
 
 def test_valid_exercise_create():
     exercise = ExerciseCreate(
@@ -23,6 +24,7 @@ def test_valid_exercise_create():
     assert "chest" in exercise.primary_muscles
     assert exercise.secondary_muscles == ["shoulders"]
 
+
 def test_valid_exercise_create_without_optional_fields():
     exercise = ExerciseCreate(
         name="Squat",
@@ -33,12 +35,14 @@ def test_valid_exercise_create_without_optional_fields():
     assert exercise.secondary_muscles is None
     assert exercise.description is None
 
+
 def test_invalid_exercise_missing_name():
     with pytest.raises(ValidationError):
         ExerciseCreate(
             category=ExerciseGroup.PULL,
             primary_muscles=["back"]
         )
+
 
 def test_invalid_exercise_missing_primary_muscles():
     with pytest.raises(ValidationError):
@@ -47,6 +51,7 @@ def test_invalid_exercise_missing_primary_muscles():
             category=ExerciseGroup.PULL
         )
 
+
 def test_invalid_exercise_missing_category():
     with pytest.raises(ValidationError):
         ExerciseCreate(
@@ -54,36 +59,67 @@ def test_invalid_exercise_missing_category():
             primary_muscles=["back", "hamstrings"]
         )
 
-def test_valid_exercise_out():
+
+def test_invalid_exercise_wrong_type_primary_muscles():
+    with pytest.raises(ValidationError):
+        ExerciseCreate(
+            name="Plank",
+            category=ExerciseGroup.PUSH,
+            primary_muscles="core"  # should be list
+        )
+
+
+def test_valid_exercise_out_defaults():
     exercise = ExerciseOut(
         id=uuid4(),
         name="Deadlift",
         category=ExerciseGroup.PULL,
         primary_muscles=["back", "glutes"],
         secondary_muscles=["hamstrings"],
-        description="Pulling movement for posterior chain."
+        description="Pulling movement for posterior chain"
     )
 
+    assert isinstance(exercise.id, UUID)
     assert exercise.name == "Deadlift"
-    assert isinstance(exercise.id, type(uuid4()))
     assert exercise.category == ExerciseGroup.PULL
+    assert exercise.user_id is None
+    assert exercise.username is None
+
+
+def test_valid_exercise_out_with_user_fields():
+    user_uuid = uuid4()
+    exercise = ExerciseOut(
+        id=uuid4(),
+        name="Bench",
+        category=ExerciseGroup.PUSH,
+        primary_muscles=["chest"],
+        secondary_muscles=None,
+        description=None,
+        user_id=user_uuid,
+        username="tester"
+    )
+
+    assert exercise.user_id == user_uuid
+    assert exercise.username == "tester"
+
 
 def test_valid_exercise_summary_out():
-    exercise_summary = ExerciseSummaryOut(
+    summary = ExerciseSummaryOut(
         id=uuid4(),
         name="Overhead Press",
         category=ExerciseGroup.PUSH
     )
 
-    assert exercise_summary.name == "Overhead Press"
-    assert isinstance(exercise_summary.id, type(uuid4()))
-    assert exercise_summary.category == ExerciseGroup.PUSH
+    assert isinstance(summary.id, UUID)
+    assert summary.name == "Overhead Press"
+    assert summary.category == ExerciseGroup.PUSH
+
 
 def test_valid_exercise_update_partial():
     update = ExerciseUpdate(description="New description only")
-
     assert update.description == "New description only"
     assert update.name is None
+
 
 def test_valid_exercise_update_full():
     update = ExerciseUpdate(
@@ -98,10 +134,7 @@ def test_valid_exercise_update_full():
     assert "shoulders" in update.primary_muscles
     assert update.category == ExerciseGroup.PUSH
 
-def test_invalid_exercise_wrong_type_primary_muscles():
+
+def test_invalid_exercise_update_wrong_field():
     with pytest.raises(ValidationError):
-        ExerciseCreate(
-            name="Plank",
-            category=ExerciseGroup.PUSH,
-            primary_muscles="core"
-        )
+        ExerciseUpdate(unknown_field="value")

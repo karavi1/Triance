@@ -12,7 +12,7 @@ def test_create_exercise(db):
         description="Posterior chain compound lift",
         category=ExerciseGroup.PULL
     )
-    created = crud_exercise.create_exercise(db, exercise)
+    created = crud_exercise.create_exercise(db, exercise, None)
 
     assert created.id is not None
     assert created.name == "Deadlift"
@@ -34,7 +34,7 @@ def test_create_batch_exercise(db):
         category=ExerciseGroup.QUADS
     )
 
-    created = crud_exercise.create_batch_exercise(db, [exercise_1, exercise_2])
+    created = crud_exercise.create_batch_exercise(db, [exercise_1, exercise_2], None)
     assert created is not None
     assert len(created) == 2
     assert created[0].name == "Deadlift"
@@ -49,7 +49,7 @@ def test_get_exercise_by_id(db):
             secondary_muscles=["shoulders"],
             description="Bodyweight upper-body pulling movement",
             category=ExerciseGroup.PULL
-        )
+        ), None
     )
     fetched = crud_exercise.get_exercise_by_id(db, created.id)
 
@@ -62,12 +62,12 @@ def test_get_all_exercises(db):
         primary_muscles=["chest", "triceps"],
         secondary_muscles=["shoulders"],
         category=ExerciseGroup.PUSH
-    ))
+    ), None)
     crud_exercise.create_exercise(db, ExerciseCreate(
         name="Squat",
         primary_muscles=["quads", "glutes"],
         category=ExerciseGroup.QUADS
-    ))
+    ), None)
 
     all_exercises = crud_exercise.get_all_exercises(db)
     assert len(all_exercises) == 2
@@ -79,7 +79,7 @@ def test_update_exercise(db):
         name="Row",
         primary_muscles=["back"],
         category=ExerciseGroup.PULL
-    ))
+    ), None)
 
     updated = crud_exercise.update_exercise(db, created.id, ExerciseUpdate(
         name="Barbell Row",
@@ -101,7 +101,7 @@ def test_delete_exercise(db):
         name="Overhead Press",
         primary_muscles=["shoulders"],
         category=ExerciseGroup.PUSH
-    ))
+    ), None)
     deleted = crud_exercise.delete_exercise(db, created.id)
 
     assert deleted is True

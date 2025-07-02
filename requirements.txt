@@ -10,3 +10,4 @@ boto3
 streamlit
 pyjwt
 passlib[bcrypt]
+pytest-asyncio
