@@ -57,16 +57,21 @@ def create_batch_exercise_handler(exercises: List[ExerciseCreate], db: Session =
 
 @router.patch("/{exercise_id}", response_model=ExerciseOut)
 def update_exercise_handler(exercise_id: UUID, updates: ExerciseUpdate, db: Session = Depends(get_db), current_user: AuthUser = Depends(get_current_active_user)):
+    # 1) Existence + visibility check
+    existing = get_exercise_by_id(db, exercise_id, current_user)
+    if not existing:
+        raise HTTPException(404, "Exercise not found")
+    # 2) Ownership/admin check + update
     updated = update_exercise(db, exercise_id, updates, current_user)
     if not updated:
-        raise HTTPException(status_code=404, detail="Exercise not found or not updated")
+        raise HTTPException(403, "Forbidden")
     return updated
 
-@router.delete("/{exercise_id}")
+@router.delete("/{exercise_id}", status_code=204)
 def delete_exercise_handler(exercise_id: UUID, db: Session = Depends(get_db), current_user: AuthUser = Depends(get_current_active_user)):
-    if not current_user:
-        raise HTTPException(status_code=401, detail="User Not Authenticated")
-    success = delete_exercise(db, exercise_id, current_user)
-    if not success:
-        raise HTTPException(status_code=404, detail="Exercise not found")
-    return success
+    existing = get_exercise_by_id(db, exercise_id, current_user)
+    if not existing:
+        raise HTTPException(404, "Exercise not found")
+    if not delete_exercise(db, exercise_id, current_user):
+        raise HTTPException(403, "Forbidden")
+    return

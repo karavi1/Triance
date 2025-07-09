@@ -21,7 +21,8 @@ def create_user(db: Session, user_data: AuthUserCreate) -> AuthUser:
         email=user_data.email,
         full_name=user_data.full_name,
         hashed_password=hashed_password,
-        disabled=user_data.disabled or False
+        disabled=user_data.disabled or False,
+        is_admin=user_data.is_admin
     )
     db.add(db_user)
     db.commit()

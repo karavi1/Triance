@@ -3,7 +3,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# If we're running tests, switch to SQLite
 if os.getenv("TESTING", "0") == "1":
     from sqlalchemy import create_engine
     from sqlalchemy.orm import sessionmaker, declarative_base
@@ -19,8 +18,6 @@ if os.getenv("TESTING", "0") == "1":
             yield db
         finally:
             db.close()
-
-# Otherwise, load from AWS Secrets and connect to MySQL
 else:
     import boto3, json
     from sqlalchemy import create_engine

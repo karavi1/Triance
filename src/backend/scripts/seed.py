@@ -3,7 +3,6 @@ import uuid
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy.orm import Session
-
 from src.backend.database.configure import SessionLocal
 from src.backend.models.auth_user import AuthUser
 from src.backend.models.exercise import Exercise
@@ -11,7 +10,6 @@ from src.backend.models.workout import Workout
 from src.backend.models.logged_exercise import LoggedExercise, LoggedExerciseSet
 from src.backend.models.enums import ExerciseGroup
 from src.backend.auth.util import get_password_hash
-
 
 # -- Exercise data map ------------------------------------------------------
 exercise_data = {
@@ -55,37 +53,6 @@ exercise_data = {
         ("Leg Curls", ["Hamstrings"], [], "Machine leg curl."),
     ],
 }
-
-
-def populate_exercises(db: Session):
-    with db.begin():
-        seen = set()
-        for cat_name, items in exercise_data.items():
-            try:
-                enum_cat = ExerciseGroup(cat_name)            # <<< lookup by value
-            except ValueError:
-                print(f"⚠ Invalid category '{cat_name}', skipping")
-                continue
-
-            for name, primary, secondary, desc in items:
-                if name in seen:
-                    continue
-                seen.add(name)
-
-                exists = db.query(Exercise).filter_by(name=name).first()
-                if not exists:
-                    ex = Exercise(
-                        id=uuid.uuid4(),
-                        name=name,
-                        category=enum_cat,
-                        primary_muscles=primary,
-                        secondary_muscles=secondary or None,
-                        description=desc,
-                    )
-                    db.add(ex)
-                    print(f"➕ Added exercise: {name} [{enum_cat.value}]")
-                else:
-                    print(f"✔️  Already have exercise: {name}")
 
 
 # -- Sample users + workouts ------------------------------------------------
@@ -178,26 +145,49 @@ sample_users = [
 ]
 
 
-def seed_users_and_workouts(db: Session):
+def populate_exercises(db: Session, exercise_owner_map: dict):
+    with db.begin():
+        seen = set()
+        for cat_name, items in exercise_data.items():
+            try:
+                enum_cat = ExerciseGroup(cat_name)
+            except ValueError:
+                print(f"⚠ Invalid category '{cat_name}', skipping")
+                continue
+
+            for name, primary, secondary, desc in items:
+                if name in seen:
+                    continue
+                seen.add(name)
+
+                exists = db.query(Exercise).filter_by(name=name).first()
+                if exists:
+                    print(f"✔️  Already have exercise: {name}")
+                    continue
+
+                owner = exercise_owner_map.get(name)
+                ex = Exercise(
+                    id=uuid.uuid4(),
+                    name=name,
+                    category=enum_cat,
+                    primary_muscles=primary,
+                    secondary_muscles=secondary or None,
+                    description=desc,
+                    user_id=owner.id if owner else None
+                )
+                db.add(ex)
+                owner_str = owner.username if owner else "Global"
+                print(f"➕ Added exercise: {name} ({cat_name}) — {owner_str}")
+
+
+def seed_users_and_workouts(db: Session, user_map: dict):
     with db.begin():
         for udata in sample_users:
-            user = db.query(AuthUser).filter_by(username=udata["username"]).first()
-            if not user:
-                user = AuthUser(
-                    id=uuid.uuid4(),
-                    username=udata["username"],
-                    email=udata["email"],
-                    hashed_password=get_password_hash(udata["password"]),
-                )
-                db.add(user)
-                db.flush()
-                print(f"➕ Created user: {user.username}")
-            else:
-                print(f"✔️  User exists: {user.username}")
+            user = user_map[udata["username"]]
 
             for wdata in udata["workouts"]:
                 created_time = datetime.now(timezone.utc) - timedelta(days=wdata["days_ago"])
-                enum_type = ExerciseGroup(wdata["type"])   # <<< lookup by value
+                enum_type = ExerciseGroup(wdata["type"])
 
                 workout = (
                     db.query(Workout)
@@ -246,8 +236,37 @@ def seed_users_and_workouts(db: Session):
 def main():
     db = SessionLocal()
     try:
-        populate_exercises(db)
-        seed_users_and_workouts(db)
+        # Seed users
+        user_map = {}
+        with db.begin():
+            for udata in sample_users:
+                user = db.query(AuthUser).filter_by(username=udata["username"]).first()
+                if not user:
+                    user = AuthUser(
+                        id=uuid.uuid4(),
+                        username=udata["username"],
+                        email=udata["email"],
+                        hashed_password=get_password_hash(udata["password"]),
+                    )
+                    db.add(user)
+                    db.flush()
+                    print(f"➕ Created user: {user.username}")
+                else:
+                    print(f"✔️  User exists: {user.username}")
+                user_map[udata["username"]] = user
+
+        # Map specific exercises to users (optional subset)
+        exercise_owner_map = {
+            "Leg Extensions": user_map["bob"],
+            "Skullcrushers": user_map["alfred"],
+            "DA Cable Rows": user_map["jess"],
+            "Rotator Cuff": user_map["jess"],
+            "Cossack Squat": user_map["bob"],
+        }
+
+        populate_exercises(db, exercise_owner_map)
+        seed_users_and_workouts(db, user_map)
+
     finally:
         db.close()
 

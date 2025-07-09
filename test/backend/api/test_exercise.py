@@ -15,6 +15,7 @@ def test_create_exercise(client, override_current_user):
     assert "id" in data
     assert isinstance(UUID(data["id"]), UUID)
 
+
 def test_create_exercise_minimal_fields(client, override_current_user):
     response = client.post("/api/exercises/", json={
         "name": "Lunge",
@@ -28,26 +29,27 @@ def test_create_exercise_minimal_fields(client, override_current_user):
     assert data["secondary_muscles"] is None or data["secondary_muscles"] == []
     assert data.get("description") in (None, "")
 
+
 def test_get_exercise_by_id(client, override_current_user):
-    # This one is just a GET, so no auth needed
-    response = client.post("/api/exercises/", json={
+    post_resp = client.post("/api/exercises/", json={
         "name": "Squat",
         "primary_muscles": ["quads", "glutes"],
         "category": "Quads"
     })
-    exercise_id = response.json()["id"]
+    exercise_id = post_resp.json()["id"]
 
     get_response = client.get(f"/api/exercises/{exercise_id}")
     assert get_response.status_code == 200
     assert get_response.json()["name"] == "Squat"
+
 
 def test_get_exercise_by_id_not_found(client, override_current_user):
     response = client.get(f"/api/exercises/{uuid4()}")
     assert response.status_code == 404
     assert response.json()["detail"] == "Exercise not found"
 
+
 def test_get_all_exercises(client, override_current_user):
-    # GET only
     client.post("/api/exercises/", json={
         "name": "Deadlift",
         "primary_muscles": ["back", "glutes"],
@@ -65,25 +67,29 @@ def test_get_all_exercises(client, override_current_user):
     names = [e["name"] for e in exercises]
     assert "Deadlift" in names and "Overhead Press" in names
 
+
 def test_delete_exercise(client, override_current_user):
-    response = client.post("/api/exercises/", json={
+    post_resp = client.post("/api/exercises/", json={
         "name": "Barbell Row",
         "primary_muscles": ["back"],
         "category": "Pull"
     })
-    exercise_id = response.json()["id"]
+    exercise_id = post_resp.json()["id"]
 
     delete_response = client.delete(f"/api/exercises/{exercise_id}")
-    assert delete_response.status_code == 200
-    assert delete_response.json() is True
+    # Now returns 204 No Content with empty body
+    assert delete_response.status_code == 204
+    assert delete_response.content == b""
 
     get_response = client.get(f"/api/exercises/{exercise_id}")
     assert get_response.status_code == 404
+
 
 def test_delete_exercise_not_found(client, override_current_user):
     response = client.delete(f"/api/exercises/{uuid4()}")
     assert response.status_code == 404
     assert response.json()["detail"] == "Exercise not found"
+
 
 def test_create_duplicate_exercise(client, override_current_user):
     exercise_data = {
@@ -98,6 +104,7 @@ def test_create_duplicate_exercise(client, override_current_user):
     assert second.status_code == 409
     assert "already exists" in second.json()["detail"]
 
+
 def test_update_exercise(client, override_current_user):
     create_resp = client.post("/api/exercises/", json={
         "name": "Cable Row",
@@ -111,6 +118,7 @@ def test_update_exercise(client, override_current_user):
     })
     assert patch_resp.status_code == 200
     assert patch_resp.json()["description"] == "Updated description"
+
 
 def test_create_batch_exercises(client, override_current_user):
     payload = [

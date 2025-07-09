@@ -91,8 +91,8 @@ def test_user(db):
 
 @pytest.fixture
 def create_user(db):
-    def _create(username="testuser", email="test@example.com", password="secret123"):
-        user_in = AuthUserCreate(username=username, email=email, password=password)
+    def _create(username="testuser", email="test@example.com", password="secret123", **extra_fields):
+        user_in = AuthUserCreate(username=username, email=email, password=password, **extra_fields)
         user = crud_user.create_user(db, user_in)
         db.commit()
         db.refresh(user)
