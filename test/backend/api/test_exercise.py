@@ -41,7 +41,7 @@ def test_get_exercise_by_id(client, override_current_user):
     assert get_response.status_code == 200
     assert get_response.json()["name"] == "Squat"
 
-def test_get_exercise_by_id_not_found(client):
+def test_get_exercise_by_id_not_found(client, override_current_user):
     response = client.get(f"/api/exercises/{uuid4()}")
     assert response.status_code == 404
     assert response.json()["detail"] == "Exercise not found"
@@ -66,7 +66,6 @@ def test_get_all_exercises(client, override_current_user):
     assert "Deadlift" in names and "Overhead Press" in names
 
 def test_delete_exercise(client, override_current_user):
-    # DELETE is not protected in your routes
     response = client.post("/api/exercises/", json={
         "name": "Barbell Row",
         "primary_muscles": ["back"],
@@ -81,7 +80,7 @@ def test_delete_exercise(client, override_current_user):
     get_response = client.get(f"/api/exercises/{exercise_id}")
     assert get_response.status_code == 404
 
-def test_delete_exercise_not_found(client):
+def test_delete_exercise_not_found(client, override_current_user):
     response = client.delete(f"/api/exercises/{uuid4()}")
     assert response.status_code == 404
     assert response.json()["detail"] == "Exercise not found"

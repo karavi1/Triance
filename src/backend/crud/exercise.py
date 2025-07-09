@@ -34,14 +34,29 @@ def create_batch_exercise(db: Session, exercises_data: List[ExerciseCreate], cur
 
     return exercises_list
 
-def get_exercise_by_id(db: Session, exercise_id: UUID):
-    return db.query(Exercise).filter(Exercise.id == exercise_id).first()
+def get_exercise_by_id(db: Session, exercise_id: UUID, currentActiveUser: AuthUser):
+    exercise = db.query(Exercise).filter(Exercise.id == exercise_id).first()
+    if not exercise:
+        # nothing to check ownership on
+        return None
 
-def get_all_exercises(db: Session):
-    return db.query(Exercise).all()
+    if currentActiveUser and exercise.user_id and exercise.user_id != currentActiveUser.id:
+        return None
 
-def get_all_exercises_categorized(db: Session):
+    return exercise
+
+
+def get_all_exercises(db: Session, currentActiveUser: AuthUser):
     exercises = db.query(Exercise).all()
+    filtered_exercises = []
+    for exercise in exercises:
+        if currentActiveUser and exercise.user_id and exercise.user_id != currentActiveUser.id:
+            continue
+        filtered_exercises.append(exercise)
+    return filtered_exercises
+
+def get_all_exercises_categorized(db: Session, currentActiveUser: AuthUser):
+    exercises = get_all_exercises(db, currentActiveUser)
     grouped = defaultdict(list)
     for exercise in exercises:
         if exercise.category:
@@ -50,8 +65,8 @@ def get_all_exercises_categorized(db: Session):
             grouped["Uncategorized"].append(exercise)
     return grouped
 
-def update_exercise(db: Session, exercise_id: UUID, updates: ExerciseUpdate):
-    exercise = db.query(Exercise).filter(Exercise.id == exercise_id).first()
+def update_exercise(db: Session, exercise_id: UUID, updates: ExerciseUpdate, currentActiveUser: AuthUser):
+    exercise = get_exercise_by_id(db, exercise_id, currentActiveUser)
     if not exercise:
         return None
     for field, value in updates.model_dump(exclude_unset=True).items():
@@ -60,8 +75,8 @@ def update_exercise(db: Session, exercise_id: UUID, updates: ExerciseUpdate):
     db.refresh(exercise)
     return exercise
 
-def delete_exercise(db: Session, exercise_id: UUID):
-    exercise = db.query(Exercise).filter(Exercise.id == exercise_id).first()
+def delete_exercise(db: Session, exercise_id: UUID, currentActiveUser: AuthUser):
+    exercise = get_exercise_by_id(db, exercise_id, currentActiveUser)
     if not exercise:
         return False
     db.delete(exercise)

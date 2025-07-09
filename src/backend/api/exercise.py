@@ -23,23 +23,23 @@ from src.backend.crud.exercise import (
 router = APIRouter()
 
 @router.get("/", response_model=List[ExerciseOut])
-def get_exercises(name: str = None, db: Session = Depends(get_db)):
-    exercises = get_all_exercises(db)
+def get_exercises(name: str = None, db: Session = Depends(get_db), current_user: AuthUser = Depends(get_current_active_user)):
+    exercises = get_all_exercises(db, current_user)
     if name:
         exercises = [e for e in exercises if e.name.lower() == name.lower()]
     return exercises
 
 @router.get("/categorized")
-def get_exercises_categorized(db: Session = Depends(get_db)):
-    return get_all_exercises_categorized(db)
+def get_exercises_categorized(db: Session = Depends(get_db), current_user: AuthUser = Depends(get_current_active_user)):
+    return get_all_exercises_categorized(db, current_user)
 
 @router.get("/categories", response_model=List[str])
 def get_exercise_categories():
     return [group.value for group in ExerciseGroup]
 
 @router.get("/{exercise_id}", response_model=ExerciseOut)
-def get_exercise_by_id_handler(exercise_id: UUID, db: Session = Depends(get_db)):
-    exercise = get_exercise_by_id(db, exercise_id)
+def get_exercise_by_id_handler(exercise_id: UUID, db: Session = Depends(get_db), current_user: AuthUser = Depends(get_current_active_user)):
+    exercise = get_exercise_by_id(db, exercise_id, current_user)
     if not exercise:
         raise HTTPException(status_code=404, detail="Exercise not found")
     return exercise
@@ -56,15 +56,17 @@ def create_batch_exercise_handler(exercises: List[ExerciseCreate], db: Session =
     return create_batch_exercise(db, exercises, current_user)
 
 @router.patch("/{exercise_id}", response_model=ExerciseOut)
-def update_exercise_handler(exercise_id: UUID, updates: ExerciseUpdate, db: Session = Depends(get_db)):
-    updated = update_exercise(db, exercise_id, updates)
+def update_exercise_handler(exercise_id: UUID, updates: ExerciseUpdate, db: Session = Depends(get_db), current_user: AuthUser = Depends(get_current_active_user)):
+    updated = update_exercise(db, exercise_id, updates, current_user)
     if not updated:
         raise HTTPException(status_code=404, detail="Exercise not found or not updated")
     return updated
 
 @router.delete("/{exercise_id}")
-def delete_exercise_handler(exercise_id: UUID, db: Session = Depends(get_db)):
-    success = delete_exercise(db, exercise_id)
+def delete_exercise_handler(exercise_id: UUID, db: Session = Depends(get_db), current_user: AuthUser = Depends(get_current_active_user)):
+    if not current_user:
+        raise HTTPException(status_code=401, detail="User Not Authenticated")
+    success = delete_exercise(db, exercise_id, current_user)
     if not success:
         raise HTTPException(status_code=404, detail="Exercise not found")
     return success
