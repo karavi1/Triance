@@ -9,12 +9,14 @@ import {
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import PrivateRoute from "./components/PrivateRoute";
-import Dashboard from './pages/Dashboard';
+
 import Home from "./pages/Home";
+import Login from "./pages/Login";
+import SignUp from "./pages/SignUp";
+import Education from "./pages/Education";
 import Exercises from "./pages/Exercises";
 import Workouts from "./pages/Workouts";
-import Login from "./pages/Login";
-import Education from "./pages/Education";
+import Dashboard from './pages/Dashboard';
 
 function Navbar() {
     const { token, logout } = useAuth();
@@ -30,9 +32,14 @@ function Navbar() {
                 <div className="collapse navbar-collapse" id="navbarNav">
                     <ul className="navbar-nav ms-auto">
                         {!token && (
-                            <li className="nav-item">
-                                <Link className="nav-link" to="/">Login</Link>
-                            </li>
+                            <>
+                                <li className="nav-item">
+                                    <Link className="nav-link" to="/login">Log In</Link>
+                                </li>
+                                <li className="nav-item">
+                                    <Link className="nav-link" to="/signup">Sign Up</Link>
+                                </li>
+                            </>
                         )}
                         <li className="nav-item">
                             <Link className="nav-link" to="/education">Education</Link>
@@ -49,10 +56,7 @@ function Navbar() {
                                     <Link className="nav-link" to="/dashboard">Dashboard</Link>
                                 </li>
                                 <li className="nav-item">
-                                    <button
-                                        className="btn btn-link nav-link"
-                                        onClick={logout}
-                                    >
+                                    <button className="btn btn-link nav-link" onClick={logout}>
                                         Logout
                                     </button>
                                 </li>
@@ -66,11 +70,10 @@ function Navbar() {
 }
 
 function AppRoutes() {
-    const { token } = useAuth();
-
     return (
         <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/signup" element={<SignUp />} />
             <Route path="/login" element={<Login />} />
             <Route path="/education" element={<Education />} />
 

@@ -11,12 +11,8 @@ const AuthContext = createContext({
 export const AuthProvider = ({ children }) => {
     const [token, setToken] = useState(() => sessionStorage.getItem("token") || "");
     const [user, setUser] = useState(() => {
-        try {
-            const u = sessionStorage.getItem("user");
-            return u ? JSON.parse(u) : null;
-        } catch {
-            return null;
-        }
+        const u = sessionStorage.getItem("user");
+        return u ? JSON.parse(u) : null;
     });
 
     const login = (newToken, newUser) => {
@@ -35,9 +31,7 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         const interceptor = axiosInstance.interceptors.request.use((config) => {
-            if (token) {
-                config.headers.Authorization = `Bearer ${token}`;
-            }
+            if (token) config.headers.Authorization = `Bearer ${token}`;
             return config;
         });
         return () => axiosInstance.interceptors.request.eject(interceptor);

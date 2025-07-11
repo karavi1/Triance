@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import axiosInstance from "../api/axios";
@@ -16,14 +16,11 @@ export default function Login() {
             const res = await axiosInstance.post(
                 "/users/token",
                 qs.stringify({ username, password }),
-                {
-                    headers: {
-                        "Content-Type": "application/x-www-form-urlencoded",
-                    },
-                }
+                { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
             );
             const token = res.data.access_token;
             login(token, { username });
+            navigate("/");
         } catch (err) {
             console.error("Login failed", err);
             setError("Invalid login credentials");

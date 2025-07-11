@@ -1,23 +1,29 @@
 import React from "react";
 import { useAuth } from "../context/AuthContext";
 import { Link } from "react-router-dom";
-import Login from "./Login";
 
 export default function Home() {
     const { user, token } = useAuth();
 
     if (!token) {
         return (
-            <div className="container mt-5" style={{ maxWidth: 400 }}>
-                <h2 className="mb-4 text-center">Welcome to Triance</h2>
-                <Login />
+            <div className="container text-center mt-5">
+                <h1 className="mb-4">Welcome to Triance</h1>
+                <p className="mb-4 text-muted">
+                    Track your workouts, visualize your progress, and stay consistent.
+                </p>
+                <Link to="/signup" className="btn btn-primary me-3">
+                    Sign Up
+                </Link>
+                <Link to="/login" className="btn btn-secondary">
+                    Log In
+                </Link>
             </div>
         );
     }
-
     return (
         <div className="container text-center mt-5">
-            <h1 className="mb-4">Welcome to Triance, {user.username}!</h1>
+            <h1 className="mb-4">🏋️‍♂️ Welcome, {user.username}!</h1>
             <p className="text-muted mb-5">
                 Track your workouts, visualize your progress, and stay consistent.
             </p>
