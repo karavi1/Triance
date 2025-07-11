@@ -1,203 +1,261 @@
 import React, { useState } from "react";
-import axios from "axios";
+import { useAuth } from "../context/AuthContext";
+import axiosInstance from "../api/axios";
+import { Tabs, Tab } from "react-bootstrap";
+
 import CreateWorkout from "./CreateWorkout";
 import UpdateWorkout from "./UpdateWorkout";
 
-if (!process.env.REACT_APP_BASE_URL) {
-  throw new Error("REACT_APP_BASE_URL is not defined in the environment");
-}
-
-const BASE_URL = process.env.REACT_APP_BASE_URL;
-
 export default function Workouts() {
-  const [username, setUsername] = useState("");
-  const [type, setType] = useState("Push");
-  const [singleWorkout, setSingleWorkout] = useState(null);
-  const [allWorkouts, setAllWorkouts] = useState([]);
-  const [message, setMessage] = useState("");
+    const { user } = useAuth();
+    const username = user?.username;
 
-  const fetchAllByUser = async () => {
-    try {
-      const res = await axios.get(`${BASE_URL}/workouts/user/${username}`);
-      console.log("All workouts response:", res.data);
-      const data = res.data;
-      setAllWorkouts(Array.isArray(data) ? data : []);
-      setSingleWorkout(null);
-      setMessage(!Array.isArray(data) || data.length === 0 ? "No workouts found for user" : "");
-    } catch (err) {
-      console.error("Failed to fetch all workouts", err);
-      setAllWorkouts([]);
-      setMessage("No workouts for that user");
-    }
-  };
+    const [type, setType] = useState("Push");
+    const [allWorkouts, setAllWorkouts] = useState([]);
+    const [singleWorkout, setSingleWorkout] = useState(null);
+    const [message, setMessage] = useState("");
+    const [tabKey, setTabKey] = useState("all");
 
-  const fetchLatestByUser = async () => {
-    try {
-      const res = await axios.get(`${BASE_URL}/workouts/user/${username}/latest`);
-      console.log("Latest workout:", res.data);
-      setSingleWorkout(res.data || null);
-      setAllWorkouts([]);
-      setMessage(!res.data ? "No latest workout found" : "");
-    } catch (err) {
-      console.error("Failed to fetch latest workout", err);
-      setSingleWorkout(null);
-      setMessage("No latest workout found");
-    }
-  };
+    const [expandedWorkouts, setExpandedWorkouts] = useState({});
 
-  const fetchLatestByUserAndType = async () => {
-    try {
-      const res = await axios.get(`${BASE_URL}/workouts/user/${username}/latest/${type}`);
-      console.log("Latest workout by type:", res.data);
-      setSingleWorkout(res.data || null);
-      setAllWorkouts([]);
-      setMessage(!res.data ? "No workout of this type found for user" : "");
-    } catch (err) {
-      console.error("Failed to fetch latest workout by type", err);
-      setSingleWorkout(null);
-      setMessage("No workout of this type found for user");
-    }
-  };
+    const fetchAllByUser = async () => {
+        if (!username) return setMessage("You must be logged in to see workouts");
+        try {
+            const res = await axiosInstance.get(`/workouts/user/${username}`);
+            const data = res.data;
+            setAllWorkouts(Array.isArray(data) ? data : []);
+            setSingleWorkout(null);
+            setMessage(!Array.isArray(data) || data.length === 0
+                ? "No workouts found for you"
+                : ""
+            );
+        } catch (err) {
+            console.error(err);
+            setAllWorkouts([]);
+            setMessage("Failed to fetch your workouts");
+        }
+    };
 
-  return (
-    <div className="container mt-5 mb-5">
-      <h2 className="mb-4">Workout Manager</h2>
+    const fetchLatestByUser = async () => {
+        if (!username) return setMessage("You must be logged in to see workouts");
+        try {
+            const res = await axiosInstance.get(`/workouts/user/${username}/latest`);
+            setSingleWorkout(res.data || null);
+            setAllWorkouts([]);
+            setMessage(!res.data ? "No latest workout found" : "");
+        } catch (err) {
+            console.error(err);
+            setSingleWorkout(null);
+            setMessage("Failed to fetch your latest workout");
+        }
+    };
 
-      {message && <div className="alert alert-info">{message}</div>}
+    const fetchLatestByUserAndType = async () => {
+        if (!username) return setMessage("You must be logged in to see workouts");
+        try {
+            const res = await axiosInstance.get(
+                `/workouts/user/${username}/latest/${type}`
+            );
+            setSingleWorkout(res.data || null);
+            setAllWorkouts([]);
+            setMessage(!res.data
+                ? `No ${type} workout found`
+                : ""
+            );
+        } catch (err) {
+            console.error(err);
+            setSingleWorkout(null);
+            setMessage(`Failed to fetch latest ${type} workout`);
+        }
+    };
 
-      {/* Lookup Controls */}
-      <div className="card p-3 mb-4">
-        <h5>Get Workout by Username</h5>
-        <div className="input-group mb-2">
-          <input
-            className="form-control"
-            placeholder="Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
-          <button className="btn btn-outline-primary" onClick={fetchAllByUser}>
-            Get All
-          </button>
-          <button className="btn btn-outline-secondary" onClick={fetchLatestByUser}>
-            Get Latest Workout
-          </button>
-        </div>
+    const toggleExpand = async (workoutId) => {
+        if (expandedWorkouts[workoutId]) {
+            setExpandedWorkouts(prev => {
+                const copy = { ...prev };
+                delete copy[workoutId];
+                return copy;
+            });
+        } else {
+            try {
+                const res = await axiosInstance.get(`/workouts/${workoutId}`);
+                setExpandedWorkouts(prev => ({
+                    ...prev,
+                    [workoutId]: res.data
+                }));
+            } catch (err) {
+                console.error(`Failed to fetch workout ${workoutId}`, err);
+                setMessage("Error loading workout details");
+            }
+        }
+    };
 
-        <div className="d-flex align-items-center gap-2">
-          <select
-            className="form-select"
-            value={type}
-            onChange={(e) => setType(e.target.value)}
-          >
-            <option value="Push">Push</option>
-            <option value="Pull">Pull</option>
-            <option value="Quads">Quads</option>
-            <option value="Hams">Hams</option>
-            <option value="Upper">Upper</option>
-            <option value="Lower">Lower</option>
-            <option value="Full Body">Full Body</option>
-            <option value="Custom">Custom</option>
-          </select>
-          <button className="btn btn-outline-success" onClick={fetchLatestByUserAndType}>
-            Get Latest by Type
-          </button>
-        </div>
-      </div>
+    return (
+        <div className="container mt-5 mb-5">
+            <h2 className="mb-4">Workout Manager</h2>
 
-      {/* Multiple Workouts */}
-      {Array.isArray(allWorkouts) &&
-        allWorkouts.map((workout, index) => (
-          workout ? (
-            <div key={index} className="card p-3 mb-4">
-              <p><strong>Number:</strong> {index + 1}</p>
-              <p><strong>ID:</strong> {workout.id}</p>
-              <p><strong>Category:</strong> {workout.workout_type || "N/A"}</p>
-              <p><strong>Date:</strong> {new Date(workout.created_time || workout.workout_date || Date.now()).toLocaleString()}</p>
+            {message && (
+                <div className="alert alert-info">{message}</div>
+            )}
+
+            <div className="btn-toolbar mb-4" role="toolbar">
+                <div className="btn-group me-2" role="group">
+                    <button
+                        className="btn btn-outline-primary"
+                        onClick={fetchAllByUser}
+                        disabled={!username}
+                    >
+                        All Workouts
+                    </button>
+                    <button
+                        className="btn btn-outline-secondary"
+                        onClick={fetchLatestByUser}
+                        disabled={!username}
+                    >
+                        Latest Workout
+                    </button>
+                </div>
+                <div className="input-group" role="group">
+                    <select
+                        className="form-select"
+                        value={type}
+                        onChange={(e) => setType(e.target.value)}
+                    >
+                        {["Push","Pull","Quads","Hams","Upper","Lower","Full Body","Custom"]
+                            .map((t) => (
+                                <option key={t} value={t}>{t}</option>
+                            ))
+                        }
+                    </select>
+                    <button
+                        className="btn btn-outline-success"
+                        onClick={fetchLatestByUserAndType}
+                        disabled={!username}
+                    >
+                        Latest by Type
+                    </button>
+                </div>
             </div>
-          ) : null
-        ))}
 
-      {/* Single Workout */}
-      {singleWorkout && (
-        <div className="card p-3 mb-4">
-          <h5>Workout Details</h5>
-          <p><strong>User:</strong> {username}</p>
-          <p><strong>ID:</strong> {singleWorkout.id}</p>
-          <p><strong>Category:</strong> {singleWorkout.workout_type || "N/A"}</p>
-          <p><strong>Date:</strong> {new Date(singleWorkout.created_time || singleWorkout.workout_date || Date.now()).toLocaleString()}</p>
+            {allWorkouts.length > 0 && allWorkouts.map((w, i) => (
+                <div key={w.id} className="card p-3 mb-3">
+                    <div className="d-flex justify-content-between align-items-center">
+                        <p className="mb-0">
+                            <strong>#{i + 1}</strong> {w.workout_type} –{" "}
+                            {new Date(w.created_time).toLocaleString()}
+                        </p>
+                        <button
+                            className="btn btn-sm btn-outline-info"
+                            onClick={() => toggleExpand(w.id)}
+                        >
+                            {expandedWorkouts[w.id] ? "Collapse" : "Expand"}
+                        </button>
+                    </div>
 
-          <div className="table-responsive mt-3">
-            {Array.isArray(singleWorkout.logged_exercises) &&
-              singleWorkout.logged_exercises.map((logged_exercise, idx) => {
-                const sortedSets = Array.isArray(logged_exercise.sets)
-                  ? [...logged_exercise.sets].sort((a, b) => a.set_number - b.set_number)
-                  : [];
-                return (
-                  <div key={idx} className="mb-4">
-                    <h6>
-                      <strong>
-                        {logged_exercise.exercise_name ||
-                          logged_exercise.exercise?.name ||
-                          "Unnamed Exercise"}
-                      </strong>
-                    </h6>
-                    <table className="table table-sm table-bordered">
-                      <thead>
-                        <tr>
-                          <th>Set #</th>
-                          <th>Reps</th>
-                          <th>Weight (lb)</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {sortedSets.map((set, j) => (
-                          <tr key={j}>
-                            <td>{set.set_number}</td>
-                            <td>{set.reps}</td>
-                            <td>{set.weight}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                );
-              })}
-          </div>
+                    {expandedWorkouts[w.id] && (
+                        <div className="mt-3 border-top pt-3">
+                            <p>
+                                <strong>Type:</strong> {expandedWorkouts[w.id].workout_type}
+                            </p>
+                            <p>
+                                <strong>Notes:</strong> {expandedWorkouts[w.id].notes || "None"}
+                            </p>
+                            <div className="table-responsive">
+                                {Array.isArray(expandedWorkouts[w.id].logged_exercises) &&
+                                    expandedWorkouts[w.id].logged_exercises.map((le, idx) => (
+                                        <div key={idx} className="mb-3">
+                                            <h6>{le.exercise_name || le.exercise?.name}</h6>
+                                            <table className="table table-sm">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Set</th>
+                                                        <th>Reps</th>
+                                                        <th>Weight</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {le.sets
+                                                        .slice()
+                                                        .sort((a, b) => a.set_number - b.set_number)
+                                                        .map((s) => (
+                                                            <tr key={s.set_number}>
+                                                                <td>{s.set_number}</td>
+                                                                <td>{s.reps}</td>
+                                                                <td>{s.weight}</td>
+                                                            </tr>
+                                                        ))
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    ))
+                                }
+                            </div>
+                        </div>
+                    )}
+                </div>
+            ))}
+
+            {singleWorkout && (
+                <div className="card p-3 mb-4">
+                    <h5>Workout Details</h5>
+                    <p>
+                        <strong>Type:</strong> {singleWorkout.workout_type}
+                    </p>
+                    <p>
+                        <strong>Notes:</strong> {singleWorkout.notes || "None"}
+                    </p>
+                    <p>
+                        <strong>Date:</strong>{" "}
+                        {new Date(singleWorkout.created_time).toLocaleString()}
+                    </p>
+                    <div className="table-responsive mt-3">
+                        {Array.isArray(singleWorkout.logged_exercises) &&
+                            singleWorkout.logged_exercises.map((le, idx) => (
+                                <div key={idx} className="mb-3">
+                                    <h6>{le.exercise_name || le.exercise?.name}</h6>
+                                    <table className="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Set</th>
+                                                <th>Reps</th>
+                                                <th>Weight</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {le.sets
+                                                .slice()
+                                                .sort((a, b) => a.set_number - b.set_number)
+                                                .map((s) => (
+                                                    <tr key={s.set_number}>
+                                                        <td>{s.set_number}</td>
+                                                        <td>{s.reps}</td>
+                                                        <td>{s.weight}</td>
+                                                    </tr>
+                                                ))
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ))
+                        }
+                    </div>
+                </div>
+            )}
+
+            <Tabs
+                id="workout-tabs"
+                activeKey={tabKey}
+                onSelect={(k) => setTabKey(k)}
+                className="mt-4"
+            >
+                <Tab eventKey="create" title="➕ Create Workout">
+                    <CreateWorkout />
+                </Tab>
+                <Tab eventKey="update" title="✏️ Update Workout">
+                    <UpdateWorkout />
+                </Tab>
+            </Tabs>
         </div>
-      )}
-
-      {/* Create & Update Workout Collapsibles */}
-      <div className="card p-3 mb-3">
-        <button
-          className="btn btn-link text-start fw-bold"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#createWorkoutCollapse"
-          aria-expanded="false"
-          aria-controls="createWorkoutCollapse"
-        >
-          Create a New Workout
-        </button>
-        <div className="collapse" id="createWorkoutCollapse">
-          <CreateWorkout />
-        </div>
-      </div>
-
-      <div className="card p-3 mb-3">
-        <button
-          className="btn btn-link text-start fw-bold"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#updateWorkoutCollapse"
-          aria-expanded="false"
-          aria-controls="updateWorkoutCollapse"
-        >
-          Update an Existing Workout
-        </button>
-        <div className="collapse" id="updateWorkoutCollapse">
-          <UpdateWorkout />
-        </div>
-      </div>
-    </div>
-  );
+    );
 }

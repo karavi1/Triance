@@ -1,49 +1,35 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import React from "react";
+import { useAuth } from "../context/AuthContext";
+import { Link } from "react-router-dom";
+import Login from "./Login";
 
-if (!process.env.REACT_APP_BASE_URL) {
-  throw new Error("REACT_APP_BASE_URL is not defined in the environment");
+export default function Home() {
+    const { user, token } = useAuth();
+
+    if (!token) {
+        return (
+            <div className="container mt-5" style={{ maxWidth: 400 }}>
+                <h2 className="mb-4 text-center">Welcome to Triance</h2>
+                <Login />
+            </div>
+        );
+    }
+
+    return (
+        <div className="container text-center mt-5">
+            <h1 className="mb-4">Welcome to Triance, {user.username}!</h1>
+            <p className="text-muted mb-5">
+                Track your workouts, visualize your progress, and stay consistent.
+            </p>
+            <Link to="/exercises" className="btn btn-secondary me-2 mb-2">
+                Manage Exercises
+            </Link>
+            <Link to="/workouts" className="btn btn-primary me-2 mb-2">
+                Manage Workouts
+            </Link>
+            <Link to="/dashboard" className="btn btn-success mb-2">
+                View Dashboard
+            </Link>
+        </div>
+    );
 }
-
-// Dynamic BASE_URL: works in dev and prod
-const BASE_URL = process.env.REACT_APP_BASE_URL;
-
-function Home() {
-  const [message, setMessage] = useState("");
-  const [users, setUsers] = useState([]);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    axios
-      .get(`${BASE_URL}/`)
-      .then((res) => {
-        setMessage(res.data?.message || "No message returned");
-      })
-      .catch((err) => {
-        setError("Error fetching message: " + err.message);
-      });
-  }, []);
-
-  return (
-    <div className="container text-center mt-5">
-      <h1 className="mb-4">🏋️‍♂️ {message}</h1>
-      {error && <div className="alert alert-danger">{error}</div>}
-
-      <p className="text-muted">Track your workouts, visualize your progress, and stay consistent.</p>
-
-      <div className="mt-4">
-        <a href="/users" className="btn btn-success me-2">
-          Manage Users
-        </a>
-        <a href="/exercises" className="btn btn-secondary me-2">
-          Manage Exercises
-        </a>
-        <a href="/workouts" className="btn btn-primary">
-          Manage Workouts
-        </a>
-      </div>
-    </div>
-  );
-}
-
-export default Home;

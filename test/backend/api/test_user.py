@@ -29,7 +29,7 @@ def test_get_all_users(client, create_user_api):
     suffix2 = str(uuid4())[:8]
     create_user_api(username=f"usera_{suffix1}", email=f"a_{suffix1}@example.com", password="a123")
     create_user_api(username=f"userb_{suffix2}", email=f"b_{suffix2}@example.com", password="b123")
-    response = client.get("/api/users/")
+    response = client.get("/api/users/all/")
     assert response.status_code == 200
     usernames = [u["username"] for u in response.json()]
     assert any(u.startswith("usera_") for u in usernames)

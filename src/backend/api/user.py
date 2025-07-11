@@ -46,7 +46,7 @@ def get_user_by_id_handler(user_id: UUID, db: Session = Depends(get_db)):
     return user
 
 
-@router.get("/", response_model=List[AuthUserOut])
+@router.get("/all/", response_model=List[AuthUserOut])
 def get_all_users_handler(db: Session = Depends(get_db)):
     return get_all_users(db)
 
