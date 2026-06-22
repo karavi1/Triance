@@ -7,17 +7,20 @@ from src.backend.models.workout import Workout
 from src.backend.models.logged_exercise import LoggedExercise
 from src.backend.models.logged_exercise_set import LoggedExerciseSet
 
-load_dotenv()
 
-if os.getenv("TESTING", "0") != "1":
-    confirm = input("This will DROP ALL TABLES in the dev database. Type 'yes' to continue: ")
-    if confirm.lower() != "yes":
-        print("Aborted.")
-        exit()
+def sync_tables():
+    """Drop and recreate all tables against the configured database."""
+    Base.metadata.drop_all(bind=engine)
+    print("Dropped all tables.")
+    Base.metadata.create_all(bind=engine)
+    print("Tables synced successfully.")
 
-# Drop and recreate all tables
-Base.metadata.drop_all(bind=engine)
-print("Dropped all tables.")
 
-Base.metadata.create_all(bind=engine)
-print("Tables synced successfully.")
+if __name__ == "__main__":
+    load_dotenv()
+    if os.getenv("TESTING", "0") != "1":
+        confirm = input("This will DROP ALL TABLES in the database. Type 'yes' to continue: ")
+        if confirm.lower() != "yes":
+            print("Aborted.")
+            exit()
+    sync_tables()
