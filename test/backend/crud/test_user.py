@@ -5,7 +5,7 @@ from src.backend.schemas.auth_user import AuthUserCreate, AuthUserUpdate
 
 
 def test_create_user_default_not_admin(create_user):
-    # By default, is_admin should be False
+    
     suffix = str(uuid4())[:8]
     user = create_user(
         username=f"user_{suffix}",

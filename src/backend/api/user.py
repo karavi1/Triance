@@ -31,7 +31,7 @@ from src.backend.auth.util import (
 router = APIRouter()
 
 @router.post("/", response_model=AuthUserOut, status_code=status.HTTP_200_OK)
-def create_user_handler(user: AuthUserCreate, db: Session = Depends(get_db)):
+async def create_user_handler(user: AuthUserCreate, db: Session = Depends(get_db)):
     existing = get_user_by_username(db, user.username)
     if existing:
         raise HTTPException(status_code=409, detail="Username already exists")
@@ -39,7 +39,7 @@ def create_user_handler(user: AuthUserCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/{user_id}", response_model=AuthUserOut)
-def get_user_by_id_handler(user_id: UUID, db: Session = Depends(get_db)):
+async def get_user_by_id_handler(user_id: UUID, db: Session = Depends(get_db)):
     user = get_user_by_id(db, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -47,12 +47,12 @@ def get_user_by_id_handler(user_id: UUID, db: Session = Depends(get_db)):
 
 
 @router.get("/all/", response_model=List[AuthUserOut])
-def get_all_users_handler(db: Session = Depends(get_db)):
+async def get_all_users_handler(db: Session = Depends(get_db)):
     return get_all_users(db)
 
 
 @router.get("/all/auth/", response_model=List[AuthUserOut])
-def get_all_users_handler_with_auth(
+async def get_all_users_handler_with_auth(
     _: Annotated[AuthUser, Depends(get_current_active_user)],
     db: Session = Depends(get_db)
 ):
@@ -60,7 +60,7 @@ def get_all_users_handler_with_auth(
 
 
 @router.delete("/{user_id}", response_model=bool)
-def delete_user_handler(user_id: UUID, db: Session = Depends(get_db)):
+async def delete_user_handler(user_id: UUID, db: Session = Depends(get_db)):
     success = delete_user(db, user_id)
     if not success:
         raise HTTPException(status_code=404, detail="User not found")
@@ -68,7 +68,7 @@ def delete_user_handler(user_id: UUID, db: Session = Depends(get_db)):
 
 
 @router.patch("/{user_id}", response_model=AuthUserOut)
-def update_user_handler(user_id: UUID, updates: AuthUserUpdate, db: Session = Depends(get_db)):
+async def update_user_handler(user_id: UUID, updates: AuthUserUpdate, db: Session = Depends(get_db)):
     updated = update_user(db, user_id, updates)
     if not updated:
         raise HTTPException(status_code=404, detail="User not found or not updated")
@@ -76,7 +76,7 @@ def update_user_handler(user_id: UUID, updates: AuthUserUpdate, db: Session = De
 
 
 @router.post("/token", response_model=Token)
-def login_for_access_token(
+async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     db: Session = Depends(get_db)
 ):
@@ -93,3 +93,10 @@ def login_for_access_token(
         expires_delta=access_token_expires
     )
     return Token(access_token=access_token, token_type="bearer")
+
+import asyncio
+
+@router.get("/test-async")
+async def test_async_route():
+    await asyncio.sleep(2)  # Non-blocking delay
+    return {"message": "Async is working"}

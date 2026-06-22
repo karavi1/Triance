@@ -1,3 +1,4 @@
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 from uuid import UUID
 from typing import Optional, List
@@ -6,10 +7,12 @@ from src.backend.schemas.auth_user import AuthUserCreate, AuthUserUpdate
 from src.backend.auth.util import get_password_hash
 
 def get_user_by_id(db: Session, user_id: UUID) -> Optional[AuthUser]:
-    return db.query(AuthUser).filter(AuthUser.id == user_id).first()
+    result = db.execute(select(AuthUser).where(AuthUser.id == user_id))
+    return result.scalar_one_or_none()
 
 def get_user_by_username(db: Session, username: str) -> Optional[AuthUser]:
-    return db.query(AuthUser).filter(AuthUser.username == username).first()
+    result = db.execute(select(AuthUser).where(AuthUser.username == username))
+    return result.scalar_one_or_none()
 
 def get_all_users(db: Session) -> List[AuthUser]:
     return db.query(AuthUser).all()

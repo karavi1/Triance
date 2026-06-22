@@ -20,14 +20,12 @@ from src.backend.schemas.exercise import ExerciseCreate
 from src.backend.models.enums import ExerciseGroup
 from src.backend.auth.util import get_current_active_user
 
-# Import all models so SQLAlchemy knows about them
 from src.backend.models.auth_user import AuthUser
 from src.backend.models.exercise import Exercise
 from src.backend.models.workout import Workout
 from src.backend.models.logged_exercise import LoggedExercise
 from src.backend.models.logged_exercise_set import LoggedExerciseSet
 
-# -- Shared test DB engine/path -------------------------------------------
 @pytest.fixture(scope="session")
 def test_engine_and_path():
     fd, path = tempfile.mkstemp(suffix=".db")
@@ -40,7 +38,6 @@ def test_engine_and_path():
     except OSError:
         pass
 
-# -- DB fixture ------------------------------------------------------------
 @pytest.fixture(scope="function")
 def db(test_engine_and_path):
     engine, _ = test_engine_and_path

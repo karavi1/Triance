@@ -3,6 +3,7 @@ fastapi[standard]
 pydantic
 SQLAlchemy
 psycopg2-binary
+asyncpg
 pymysql
 axios
 python-dateutil
@@ -10,4 +11,7 @@ boto3
 streamlit
 pyjwt
 passlib[bcrypt]
+bcrypt<4.1
 pytest-asyncio
+aiomysql
+greenlet

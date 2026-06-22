@@ -1,0 +1,26 @@
+# Render Blueprint for the Triance FastAPI backend.
+# Docs: https://render.com/docs/blueprint-spec
+#
+# Secrets (DATABASE_URL, SECRET_KEY) are intentionally NOT stored here —
+# they are marked `sync: false` and must be set in the Render dashboard.
+services:
+  - type: web
+    name: triance-api
+    runtime: python
+    region: ohio          # closest to a Neon us-east-2 database; change to match yours
+    plan: free
+    branch: main
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn src.backend.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api
+    envVars:
+      - key: DATABASE_URL   # paste the Neon connection string in the dashboard
+        sync: false
+      - key: SECRET_KEY     # generate a fresh secret in the dashboard
+        sync: false
+      - key: ALGORITHM
+        value: HS256
+      - key: SCHEME
+        value: bcrypt
+      - key: PYTHON_VERSION
+        value: 3.11.9

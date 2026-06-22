@@ -18,7 +18,6 @@ export default function SignUp() {
         setError("");
 
         try {
-            // 1) Create the user
             await axiosInstance.post("/users/", {
                 username,
                 email,
@@ -26,7 +25,6 @@ export default function SignUp() {
                 full_name: fullName || undefined,
             });
 
-            // 2) Immediately log them in
             const res = await axiosInstance.post(
                 "/users/token",
                 qs.stringify({ username, password }),
@@ -35,7 +33,6 @@ export default function SignUp() {
             const token = res.data.access_token;
             login(token, { username });
 
-            // 3) Redirect to Home
             navigate("/");
         } catch (err) {
             if (err.response?.status === 409) {

@@ -1,10 +1,10 @@
 from dateutil.relativedelta import relativedelta
-from fastapi import HTTPException  # FIXED: was imported from http.client (incorrect)
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from uuid import UUID, uuid4
 from typing import Optional
 
-from src.backend.models.auth_user import AuthUser  # switched from `User` to `AuthUser`
+from src.backend.models.auth_user import AuthUser
 from src.backend.models.enums import ExerciseGroup
 from src.backend.models.exercise import Exercise
 from src.backend.models.workout import Workout
