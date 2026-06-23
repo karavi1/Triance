@@ -1,0 +1,14 @@
+# Dev-only deps for the Streamlit developer dashboard (src/dashboard/app.py).
+# NOT needed by the FastAPI backend, so they are kept out of requirements.txt
+# to keep the Render build small and fast.
+#
+# For local dashboard work, install both files:
+#   pip install -r requirements.txt -r requirements-dashboard.txt
+#
+# Note: boto3 also backs the legacy AWS Secrets Manager DB fallback in
+# database/configure.py (only used if DB_SECRET_NAME is set, which the
+# DATABASE_URL-based deploy does not).
+streamlit
+boto3
+pandas
+requests
