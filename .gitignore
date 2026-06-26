@@ -10,6 +10,9 @@ env/
 # VS Code
 .vscode/
 
+# Claude Code local config
+.claude/
+
 # macOS
 .DS_Store
 
